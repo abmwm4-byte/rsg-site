@@ -9,6 +9,7 @@ import RatingBadge from '../components/RatingBadge.astro';
 import ReviewsCarousel from '../components/ReviewsCarousel.astro';
 import RegionBlock from '../components/RegionBlock.astro';
 import HomeContacts from '../components/HomeContacts.astro';
+import RouteButton from '../components/RouteButton.astro';
 import MessengerButtons from '../components/MessengerButtons.astro';
 import { site, advantages, steps } from '../data/site';
 ---
@@ -33,6 +34,7 @@ import { site, advantages, steps } from '../data/site';
           <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">
             {site.phones[0].number}
           </a>
+          <RouteButton size="lg" />
           <MessengerButtons size="lg" />
         </div>
       </div>

@@ -3,17 +3,19 @@ import { site } from '../data/site';
 
 interface Props {
   variant?: 'primary' | 'outline';
+  size?: 'md' | 'lg';
 }
-const { variant = 'outline' } = Astro.props;
+const { variant = 'outline', size = 'md' } = Astro.props;
 
 const { lat, lng } = site.geo;
 // Схема приложения Яндекс Навигатора + веб-фолбэк с построением маршрута от геопозиции
 const naviUrl = `yandexnavi://build_route_on_map?lat_to=${lat}&lon_to=${lng}`;
 const webUrl = `https://yandex.by/maps/?rtext=~${lat}%2C${lng}&rtt=auto`;
 
+const sizeClasses = size === 'lg' ? 'px-8 py-4 text-lg' : 'px-6 py-3';
 const classes = variant === 'primary'
-  ? 'rounded-2xl bg-blue-600 px-6 py-3 font-bold text-white transition hover:bg-blue-700'
-  : 'rounded-2xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-600';
+  ? `rounded-2xl bg-blue-600 font-bold text-white transition hover:bg-blue-700 ${sizeClasses}`
+  : `rounded-2xl border-2 border-blue-600 bg-white font-bold text-blue-700 transition hover:bg-blue-50 ${sizeClasses}`;
 ---
 
 <a
@@ -27,7 +29,8 @@ const classes = variant === 'primary'
 </a>
 
 <script>
-  document.querySelectorAll('.route-btn').forEach((btn) => {
+  document.querySelectorAll('.route-btn:not([data-route-bound])').forEach((btn) => {
+    btn.setAttribute('data-route-bound', '1');
     btn.addEventListener('click', (e) => {
       // На десктопе — обычный переход в веб-карты
       if (!/iPhone|iPad|Android/i.test(navigator.userAgent)) return;
