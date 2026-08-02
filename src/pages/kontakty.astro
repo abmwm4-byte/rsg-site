@@ -4,7 +4,9 @@ import MessengerButtons from '../components/MessengerButtons.astro';
 import RouteButton from '../components/RouteButton.astro';
 import { site } from '../data/site';
 
-const mapsFrame = `https://yandex.by/map-widget/v1/?display-text=${encodeURIComponent('Ремонт стартеров и генераторов')}&ll=${site.geo.lng}%2C${site.geo.lat}&mode=search&poi%5Bpoint%5D=${site.geo.lng}%2C${site.geo.lat}&poi%5Buri%5D=ymapsbm1%3A%2F%2Forg%3Foid%3D151564311231&z=16`;
+const mapsBase = `https://yandex.by/map-widget/v1/?display-text=${encodeURIComponent('Ремонт стартеров и генераторов')}&ll=${site.geo.lng}%2C${site.geo.lat}&mode=search&poi%5Bpoint%5D=${site.geo.lng}%2C${site.geo.lat}&poi%5Buri%5D=ymapsbm1%3A%2F%2Forg%3Foid%3D151564311231&z=16`;
+const mapsLight = mapsBase + '&theme=light';
+const mapsDark = mapsBase + '&theme=dark';
 ---
 
 <SiteLayout
@@ -52,9 +54,11 @@ const mapsFrame = `https://yandex.by/map-widget/v1/?display-text=${encodeURIComp
       <!-- Карта -->
       <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
         <iframe
-          src={mapsFrame}
+          src={mapsLight}
+          data-light={mapsLight}
+          data-dark={mapsDark}
           title="Карта: автосервис RSG Group, Минск"
-          class="h-full min-h-[400px] w-full"
+          class="yandex-map h-full min-h-[400px] w-full"
           loading="lazy"
           allowfullscreen
         ></iframe>

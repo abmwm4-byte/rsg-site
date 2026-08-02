@@ -48,6 +48,17 @@ const schema = {
   </div>
 
   <script>
+    // Яндекс.Карта: тёмная/светлая тема виджета синхронно с темой сайта
+    function syncMaps() {
+      const dark = document.documentElement.classList.contains('dark');
+      document.querySelectorAll('.yandex-map').forEach((f) => {
+        const src = dark ? f.dataset.dark : f.dataset.light;
+        if (f.src !== src) f.src = src;
+      });
+    }
+    syncMaps();
+    new MutationObserver(syncMaps).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
     // Кнопки «Маршрут» (.route-btn): мгновенное открытие Яндекс Навигатора на мобильных
     document.querySelectorAll('.route-btn:not([data-route-bound])').forEach((btn) => {
       btn.setAttribute('data-route-bound', '1');
