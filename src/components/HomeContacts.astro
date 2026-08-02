@@ -5,9 +5,9 @@ const mapsFrame = `https://yandex.by/map-widget/v1/?display-text=${encodeURIComp
 ---
 
 <section class="mx-auto max-w-6xl px-4 py-16">
-  <h2 class="mb-8 text-3xl font-extrabold tracking-tight text-slate-900">Как нас найти</h2>
+  <h2 class="mb-8 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Как нас найти</h2>
 
-  <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white md:grid md:grid-cols-5">
+  <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 md:grid md:grid-cols-5">
     <iframe
       src={mapsFrame}
       title="Карта: автосервис RSG Group, Минск"
@@ -18,12 +18,12 @@ const mapsFrame = `https://yandex.by/map-widget/v1/?display-text=${encodeURIComp
 
     <div class="p-5 sm:p-6 md:col-span-2 md:flex md:flex-col">
       <div>
-        <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Адрес</div>
-        <div class="mt-1 text-lg font-bold text-slate-900">{site.address}</div>
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Адрес</div>
+        <div class="mt-1 text-lg font-bold text-slate-900 dark:text-white">{site.address}</div>
       </div>
       <div class="mt-4">
-        <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Режим работы</div>
-        <div class="mt-1 font-bold text-slate-900">9:00–19:00, без выходных</div>
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Режим работы</div>
+        <div class="mt-1 font-bold text-slate-900 dark:text-white">9:00–19:00, без выходных</div>
       </div>
 
       <div class="mt-6 flex flex-col gap-2 sm:flex-row md:mt-auto">
@@ -39,7 +39,7 @@ const mapsFrame = `https://yandex.by/map-widget/v1/?display-text=${encodeURIComp
         </a>
         <a
           href="/kontakty/"
-          class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-600 sm:flex-1"
+          class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:text-blue-400 sm:flex-1"
         >Все контакты</a>
       </div>
     </div>

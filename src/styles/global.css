@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Тёмная тема по классу .dark на <html> (переключатель Светлая/Авто/Тёмная) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Inter self-hosted (variable, 400–800), вместо Google Fonts — быстрее и без внешних запросов */
 @font-face {
   font-family: 'Inter';

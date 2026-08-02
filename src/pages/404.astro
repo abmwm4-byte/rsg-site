@@ -10,8 +10,8 @@ import { site, nav } from '../data/site';
 >
   <section class="mx-auto max-w-3xl px-4 py-24 text-center">
     <div class="text-7xl font-extrabold text-blue-600">404</div>
-    <h1 class="mt-4 text-3xl font-extrabold tracking-tight text-slate-900">Такой страницы нет</h1>
-    <p class="mx-auto mt-3 max-w-md text-slate-600">
+    <h1 class="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Такой страницы нет</h1>
+    <p class="mx-auto mt-3 max-w-md text-slate-600 dark:text-slate-400">
       Возможно, она переехала вместе с новым сайтом. Но мы на месте — звоните или выберите раздел:
     </p>
     <div class="mt-8 flex flex-wrap justify-center gap-3">
@@ -20,7 +20,7 @@ import { site, nav } from '../data/site';
     </div>
     <div class="mt-10 flex flex-wrap justify-center gap-2">
       {nav.map((item) => (
-        <a href={item.href} class="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-blue-400 hover:text-blue-600">{item.label}</a>
+        <a href={item.href} class="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:text-blue-400">{item.label}</a>
       ))}
     </div>
   </section>

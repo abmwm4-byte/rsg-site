@@ -8,7 +8,7 @@ const vb = site.messengers.find((m) => m.name === 'Viber');
 const chip = 'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white';
 ---
 
-<div class="fixed bottom-0 z-50 flex w-full items-center gap-2 border-t border-slate-200 bg-white/95 p-3 backdrop-blur md:hidden">
+<div class="fixed bottom-0 z-50 flex w-full items-center gap-2 border-t border-slate-200 bg-white/95 p-3 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95 md:hidden">
   <a
     href={site.phones[0].href}
     data-goal="call"
@@ -23,7 +23,7 @@ const chip = 'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl tex
     data-intent={site.route.intent}
     data-goal="route"
     aria-label="Маршрут в Яндекс Навигаторе"
-    class="route-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-blue-600 text-blue-700"
+    class="route-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-blue-600 text-blue-700 dark:border-blue-500 dark:text-blue-400"
   >
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 11 19-9-9 19-2-8-8-2Z"/></svg>
   </a>

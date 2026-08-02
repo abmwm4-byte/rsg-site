@@ -2,11 +2,11 @@
 import { quiz, site } from '../data/site';
 ---
 
-<section class="bg-white">
+<section class="bg-white dark:bg-slate-900">
   <div class="mx-auto max-w-6xl px-4 py-16">
     <div class="mb-10 text-center">
-      <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Что случилось? Узнайте примерную цену</h2>
-      <p class="mt-2 text-slate-500">Выберите симптом — покажем вероятную причину и вилку стоимости. Подробные цены — на страницах <a href="/remont-starterov/" class="font-semibold text-blue-600 hover:underline">стартеров</a> и <a href="/remont-generatorov/" class="font-semibold text-blue-600 hover:underline">генераторов</a></p>
+      <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Что случилось? Узнайте примерную цену</h2>
+      <p class="mt-2 text-slate-500 dark:text-slate-400">Выберите симптом — покажем вероятную причину и вилку стоимости. Подробные цены — на страницах <a href="/remont-starterov/" class="font-semibold text-blue-600 hover:underline dark:text-blue-400">стартеров</a> и <a href="/remont-generatorov/" class="font-semibold text-blue-600 hover:underline dark:text-blue-400">генераторов</a></p>
     </div>
 
     <div id="quiz-options" class="mx-auto grid max-w-4xl gap-3 sm:grid-cols-2">
@@ -14,23 +14,23 @@ import { quiz, site } from '../data/site';
         <button
           type="button"
           data-quiz={q.id}
-          class="quiz-option rounded-2xl border border-slate-200 bg-slate-50 px-6 py-5 text-left font-semibold text-slate-800 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700"
+          class="quiz-option rounded-2xl border border-slate-200 bg-slate-50 px-6 py-5 text-left font-semibold text-slate-800 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:bg-blue-950 dark:hover:text-blue-300"
         >
           {q.symptom}
         </button>
       ))}
     </div>
 
-    <div id="quiz-result" class="mx-auto mt-6 hidden max-w-2xl rounded-3xl border border-blue-200 bg-blue-50 p-8 text-center">
-      <div class="text-sm font-semibold uppercase tracking-wide text-blue-700">Вероятная причина</div>
-      <div id="quiz-cause" class="mt-2 text-xl font-bold text-slate-900"></div>
-      <div class="mt-4 text-sm font-semibold uppercase tracking-wide text-blue-700">Ориентировочно</div>
-      <div id="quiz-price" class="mt-1 text-4xl font-extrabold text-blue-700"></div>
-      <p class="mt-3 text-sm text-slate-500">Точную причину и цену назовём после диагностики — от 20 BYN, 20–30 минут.</p>
+    <div id="quiz-result" class="mx-auto mt-6 hidden max-w-2xl rounded-3xl border border-blue-200 bg-blue-50 p-8 text-center dark:border-blue-800 dark:bg-blue-950/50">
+      <div class="text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-400">Вероятная причина</div>
+      <div id="quiz-cause" class="mt-2 text-xl font-bold text-slate-900 dark:text-white"></div>
+      <div class="mt-4 text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-400">Ориентировочно</div>
+      <div id="quiz-price" class="mt-1 text-4xl font-extrabold text-blue-700 dark:text-blue-400"></div>
+      <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">Точную причину и цену назовём после диагностики — от 20 BYN, 20–30 минут.</p>
       <div class="mt-6 flex flex-wrap justify-center gap-3">
         <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-6 py-3 font-bold text-white transition hover:bg-blue-700">Позвонить</a>
-        <a id="quiz-wa" href="#" data-goal="whatsapp" class="rounded-2xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-600">Написать в WhatsApp</a>
-        <button id="quiz-reset" type="button" class="px-4 py-3 text-sm font-semibold text-slate-500 transition hover:text-slate-700">Не мой случай ↺</button>
+        <a id="quiz-wa" href="#" data-goal="whatsapp" class="rounded-2xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:text-blue-400">Написать в WhatsApp</a>
+        <button id="quiz-reset" type="button" class="px-4 py-3 text-sm font-semibold text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">Не мой случай ↺</button>
       </div>
     </div>
   </div>

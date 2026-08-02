@@ -2,34 +2,34 @@
 import { site, nav } from '../data/site';
 ---
 
-<footer class="border-t border-slate-200 bg-white pb-24 md:pb-0">
-  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm text-slate-500 md:grid-cols-3">
+<footer class="border-t border-slate-200 bg-white pb-24 md:pb-0 dark:border-slate-800 dark:bg-slate-900">
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm text-slate-500 dark:text-slate-400 md:grid-cols-3">
     <div>
-      <div class="text-lg font-extrabold text-slate-900">RSG <span class="text-blue-600">Group</span></div>
+      <div class="text-lg font-extrabold text-slate-900 dark:text-white">RSG <span class="text-blue-600 dark:text-blue-400">Group</span></div>
       <p class="mt-3">{site.address}</p>
       <p class="mt-1">{site.hours}</p>
     </div>
     <div>
-      <div class="font-semibold text-slate-900">Контакты</div>
+      <div class="font-semibold text-slate-900 dark:text-white">Контакты</div>
       {site.phones.map((p) => (
         <p class="mt-2">
-          <a href={p.href} data-goal="call" class="font-medium text-slate-700 transition hover:text-blue-600">{p.label}: {p.number}</a>
+          <a href={p.href} data-goal="call" class="font-medium text-slate-700 transition hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400">{p.label}: {p.number}</a>
         </p>
       ))}
       <p class="mt-3 flex gap-3">
         {site.messengers.map((m) => (
-          <a href={m.href} data-goal={m.goal} class="font-medium text-blue-600 transition hover:underline">{m.name}</a>
+          <a href={m.href} data-goal={m.goal} class="font-medium text-blue-600 transition hover:underline dark:text-blue-400">{m.name}</a>
         ))}
       </p>
     </div>
     <div>
-      <div class="font-semibold text-slate-900">Услуги</div>
+      <div class="font-semibold text-slate-900 dark:text-white">Услуги</div>
       {nav.slice(0, 4).map((item) => (
-        <p class="mt-2"><a href={item.href} class="transition hover:text-blue-600">{item.label}</a></p>
+        <p class="mt-2"><a href={item.href} class="transition hover:text-blue-600 dark:hover:text-blue-400">{item.label}</a></p>
       ))}
     </div>
   </div>
-  <div class="border-t border-slate-100">
-    <p class="mx-auto max-w-6xl px-4 py-4 text-xs text-slate-400">© 2010–2026 {site.legalName}. УНП: {site.unp}. Все права защищены.</p>
+  <div class="border-t border-slate-100 dark:border-slate-800">
+    <p class="mx-auto max-w-6xl px-4 py-4 text-xs text-slate-400 dark:text-slate-500">© 2010–2026 {site.legalName}. УНП: {site.unp}. Все права защищены.</p>
   </div>
 </footer>

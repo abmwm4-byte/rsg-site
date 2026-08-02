@@ -25,11 +25,11 @@ const diagnostikaFaq = [
   title="Диагностика стартеров и генераторов в Минске — от 20 BYN | RSG Group"
   description="Диагностика стартера и генератора на стенде и на автомобиле в Минске. 20–30 минут, честный вердикт: ремонт или замена. Без записи, работаем без выходных 9:00–19:00."
 >
-  <section class="bg-white">
+  <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-6xl px-4 pb-12 pt-12">
-      <nav class="mb-4 text-sm text-slate-500"><a href="/" class="hover:text-blue-600">Главная</a> / <span class="text-slate-700">Диагностика</span></nav>
-      <h1 class="max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-5xl">Диагностика стартеров и генераторов</h1>
-      <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
+      <nav class="mb-4 text-sm text-slate-500 dark:text-slate-400"><a href="/" class="hover:text-blue-600">Главная</a> / <span class="text-slate-700">Диагностика</span></nav>
+      <h1 class="max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white md:text-5xl">Диагностика стартеров и генераторов</h1>
+      <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
         Проверяем узел на автомобиле и на стенде. Через 20–30 минут вы знаете точную причину
         и стоимость ремонта — до начала любых работ.
       </p>
@@ -43,30 +43,30 @@ const diagnostikaFaq = [
 
   <!-- Что проверяем -->
   <section class="mx-auto max-w-6xl px-4 py-16">
-    <h2 class="mb-8 text-3xl font-extrabold tracking-tight text-slate-900">Что входит в диагностику</h2>
+    <h2 class="mb-8 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Что входит в диагностику</h2>
     <div class="grid gap-5 md:grid-cols-3">
-      <div class="rounded-2xl border border-slate-200 bg-white p-6">
-        <div class="font-bold text-slate-900">На автомобиле</div>
-        <p class="mt-2 text-sm leading-relaxed text-slate-600">Замер напряжения и тока, проверка проводки, ремня и клемм — исключаем ложные симптомы.</p>
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+        <div class="font-bold text-slate-900 dark:text-white">На автомобиле</div>
+        <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">Замер напряжения и тока, проверка проводки, ремня и клемм — исключаем ложные симптомы.</p>
       </div>
-      <div class="rounded-2xl border border-slate-200 bg-white p-6">
-        <div class="font-bold text-slate-900">На стенде</div>
-        <p class="mt-2 text-sm leading-relaxed text-slate-600">Снятый узел проверяем под нагрузкой: стартер — на пусковой ток, генератор — на отдачу и стабильность напряжения.</p>
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+        <div class="font-bold text-slate-900 dark:text-white">На стенде</div>
+        <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">Снятый узел проверяем под нагрузкой: стартер — на пусковой ток, генератор — на отдачу и стабильность напряжения.</p>
       </div>
-      <div class="rounded-2xl border border-slate-200 bg-white p-6">
-        <div class="font-bold text-slate-900">Честный вердикт</div>
-        <p class="mt-2 text-sm leading-relaxed text-slate-600">Называем причину, варианты и точную цену. Если ремонт невыгоден — скажем прямо.</p>
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+        <div class="font-bold text-slate-900 dark:text-white">Честный вердикт</div>
+        <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">Называем причину, варианты и точную цену. Если ремонт невыгоден — скажем прямо.</p>
       </div>
     </div>
   </section>
 
   <!-- Цена -->
-  <section class="bg-white">
+  <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-6xl px-4 py-16">
-      <div class="rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center md:p-12">
-        <div class="text-sm font-semibold uppercase tracking-wide text-blue-700">Диагностика</div>
-        <div class="mt-2 text-5xl font-extrabold text-slate-900">от 20 BYN</div>
-        <p class="mx-auto mt-3 max-w-md text-slate-600">20–30 минут, без записи. Приезжайте в любой день: {site.hours}.</p>
+      <div class="rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center dark:border-slate-700 dark:bg-slate-800 md:p-12">
+        <div class="text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-400">Диагностика</div>
+        <div class="mt-2 text-5xl font-extrabold text-slate-900 dark:text-white">от 20 BYN</div>
+        <p class="mx-auto mt-3 max-w-md text-slate-600 dark:text-slate-400">20–30 минут, без записи. Приезжайте в любой день: {site.hours}.</p>
         <div class="mt-7 flex flex-wrap justify-center gap-3">
           <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">Позвонить</a>
           <MessengerButtons size="lg" />

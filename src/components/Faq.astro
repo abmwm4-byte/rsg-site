@@ -21,15 +21,15 @@ const faqSchema = {
 ---
 
 <section class="mx-auto max-w-4xl px-4 py-16">
-  <h2 class="mb-8 text-center text-3xl font-extrabold tracking-tight text-slate-900">{title}</h2>
+  <h2 class="mb-8 text-center text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">{title}</h2>
   <div class="space-y-3">
     {items.map((item) => (
-      <details class="group rounded-2xl border border-slate-200 bg-white">
-        <summary class="flex cursor-pointer list-none items-center justify-between px-6 py-4 font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
+      <details class="group rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+        <summary class="flex cursor-pointer list-none items-center justify-between px-6 py-4 font-semibold text-slate-900 dark:text-white [&::-webkit-details-marker]:hidden">
           {item.q}
           <svg class="h-5 w-5 shrink-0 text-slate-400 transition group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
         </summary>
-        <p class="px-6 pb-5 leading-relaxed text-slate-600">{item.a}</p>
+        <p class="px-6 pb-5 leading-relaxed text-slate-600 dark:text-slate-400">{item.a}</p>
       </details>
     ))}
   </div>

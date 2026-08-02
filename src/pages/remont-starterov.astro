@@ -12,11 +12,11 @@ import { site, starterSymptoms, starterFaq } from '../data/site';
   description="Ремонт стартеров любой сложности в Минске: замена щёток, бендикса, втулок, втягивающего реле. Диагностика на стенде, свой склад запчастей, гарантия. Работаем без выходных 9:00–19:00."
 >
   <!-- Hero страницы -->
-  <section class="bg-white">
+  <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-6xl px-4 pb-12 pt-12">
-      <nav class="mb-4 text-sm text-slate-500"><a href="/" class="hover:text-blue-600">Главная</a> / <span class="text-slate-700">Ремонт стартеров</span></nav>
-      <h1 class="max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-5xl">Ремонт стартеров в Минске</h1>
-      <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
+      <nav class="mb-4 text-sm text-slate-500 dark:text-slate-400"><a href="/" class="hover:text-blue-600">Главная</a> / <span class="text-slate-700">Ремонт стартеров</span></nav>
+      <h1 class="max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white md:text-5xl">Ремонт стартеров в Минске</h1>
+      <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
         Переборка, замена щёток, бендикса, втулок, втягивающего реле. Проверка на стенде до и после ремонта.
         Большинство работ — в день обращения, благодаря собственному складу запчастей.
       </p>
@@ -30,40 +30,40 @@ import { site, starterSymptoms, starterFaq } from '../data/site';
 
   <!-- Симптомы -->
   <section class="mx-auto max-w-6xl px-4 py-16">
-    <h2 class="mb-8 text-3xl font-extrabold tracking-tight text-slate-900">Когда пора к нам</h2>
+    <h2 class="mb-8 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Когда пора к нам</h2>
     <div class="grid gap-4 md:grid-cols-2">
       {starterSymptoms.map((s) => (
-        <div class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-5">
+        <div class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
           <svg class="mt-0.5 h-5 w-5 shrink-0 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
           <span class="text-slate-700">{s}</span>
         </div>
       ))}
     </div>
-    <p class="mt-6 rounded-2xl bg-blue-50 p-5 text-slate-700">
+    <p class="mt-6 rounded-2xl bg-blue-50 p-5 text-slate-700 dark:bg-blue-950/50 dark:text-slate-300">
       Не уверены, что дело в стартере? Приезжайте на диагностику — проверим также аккумулятор и проводку, чтобы вы не платили за лишнее.
     </p>
   </section>
 
   <!-- Цены -->
-  <section class="bg-white">
+  <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-6xl px-4 py-16">
-      <h2 class="mb-8 text-3xl font-extrabold tracking-tight text-slate-900">Цены на ремонт стартеров</h2>
-      <div class="overflow-hidden rounded-2xl border border-slate-200">
+      <h2 class="mb-8 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Цены на ремонт стартеров</h2>
+      <div class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700">
         <table class="w-full text-left">
-          <thead class="bg-slate-50 text-sm font-semibold text-slate-600">
+          <thead class="bg-slate-50 text-sm font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-400">
             <tr><th class="px-6 py-4">Работа</th><th class="px-6 py-4">Стоимость</th><th class="hidden px-6 py-4 sm:table-cell">Срок</th></tr>
           </thead>
-          <tbody class="divide-y divide-slate-100">
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
             <!-- TODO(прайс): заменить на реальные цены -->
-            <tr><td class="px-6 py-4 font-medium text-slate-900">Диагностика на стенде</td><td class="px-6 py-4 text-blue-700 font-bold">от 20 BYN</td><td class="hidden px-6 py-4 text-slate-500 sm:table-cell">20–30 мин</td></tr>
-            <tr><td class="px-6 py-4 font-medium text-slate-900">Замена щёток</td><td class="px-6 py-4 text-blue-700 font-bold">60–90 BYN</td><td class="hidden px-6 py-4 text-slate-500 sm:table-cell">от 1 часа</td></tr>
-            <tr><td class="px-6 py-4 font-medium text-slate-900">Замена бендикса</td><td class="px-6 py-4 text-blue-700 font-bold">80–120 BYN</td><td class="hidden px-6 py-4 text-slate-500 sm:table-cell">от 1 часа</td></tr>
-            <tr><td class="px-6 py-4 font-medium text-slate-900">Замена втягивающего реле</td><td class="px-6 py-4 text-blue-700 font-bold">70–110 BYN</td><td class="hidden px-6 py-4 text-slate-500 sm:table-cell">от 1 часа</td></tr>
-            <tr><td class="px-6 py-4 font-medium text-slate-900">Полная переборка</td><td class="px-6 py-4 text-blue-700 font-bold">120–200 BYN</td><td class="hidden px-6 py-4 text-slate-500 sm:table-cell">в день обращения</td></tr>
+            <tr><td class="px-6 py-4 font-medium text-slate-900 dark:text-white">Диагностика на стенде</td><td class="px-6 py-4 text-blue-700 font-bold dark:text-blue-400">от 20 BYN</td><td class="hidden px-6 py-4 text-slate-500 dark:text-slate-400 sm:table-cell">20–30 мин</td></tr>
+            <tr><td class="px-6 py-4 font-medium text-slate-900 dark:text-white">Замена щёток</td><td class="px-6 py-4 text-blue-700 font-bold dark:text-blue-400">60–90 BYN</td><td class="hidden px-6 py-4 text-slate-500 dark:text-slate-400 sm:table-cell">от 1 часа</td></tr>
+            <tr><td class="px-6 py-4 font-medium text-slate-900 dark:text-white">Замена бендикса</td><td class="px-6 py-4 text-blue-700 font-bold dark:text-blue-400">80–120 BYN</td><td class="hidden px-6 py-4 text-slate-500 dark:text-slate-400 sm:table-cell">от 1 часа</td></tr>
+            <tr><td class="px-6 py-4 font-medium text-slate-900 dark:text-white">Замена втягивающего реле</td><td class="px-6 py-4 text-blue-700 font-bold dark:text-blue-400">70–110 BYN</td><td class="hidden px-6 py-4 text-slate-500 dark:text-slate-400 sm:table-cell">от 1 часа</td></tr>
+            <tr><td class="px-6 py-4 font-medium text-slate-900 dark:text-white">Полная переборка</td><td class="px-6 py-4 text-blue-700 font-bold dark:text-blue-400">120–200 BYN</td><td class="hidden px-6 py-4 text-slate-500 dark:text-slate-400 sm:table-cell">в день обращения</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="mt-4 text-sm text-slate-500">Цены ориентировочные и зависят от модели стартера и состояния узла. Точную стоимость называем после диагностики — до начала работ.</p>
+      <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">Цены ориентировочные и зависят от модели стартера и состояния узла. Точную стоимость называем после диагностики — до начала работ.</p>
     </div>
   </section>
 
@@ -71,10 +71,10 @@ import { site, starterSymptoms, starterFaq } from '../data/site';
   <RegionBlock />
 
   <!-- CTA -->
-  <section class="bg-white">
+  <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-6xl px-4 py-16 text-center">
-      <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Стартер щёлкает, но не крутит?</h2>
-      <p class="mx-auto mt-3 max-w-xl text-slate-600">Позвоните — по симптомам подскажем, в чём может быть дело. Приезжайте без записи: {site.hours}.</p>
+      <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Стартер щёлкает, но не крутит?</h2>
+      <p class="mx-auto mt-3 max-w-xl text-slate-600 dark:text-slate-400">Позвоните — по симптомам подскажем, в чём может быть дело. Приезжайте без записи: {site.hours}.</p>
       <div class="mt-8 flex flex-wrap justify-center gap-3">
         <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">Позвонить</a>
         <MessengerButtons size="lg" />

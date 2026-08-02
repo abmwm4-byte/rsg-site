@@ -17,14 +17,14 @@ import { site, advantages, steps } from '../data/site';
   description="Ремонт стартеров и генераторов любой сложности в Минске. Осмотр в день обращения, свой склад запчастей, официальная гарантия. Работаем без выходных 9:00–19:00. Принимаем узлы Европочтой со всей Беларуси."
 >
   <!-- Hero -->
-  <section class="bg-white">
+  <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-6xl px-4 pb-16 pt-14 md:pt-20">
       <div class="max-w-2xl">
-        <p class="mb-4 inline-block rounded-full bg-blue-50 px-4 py-1.5 text-sm font-semibold text-blue-700">Минск · работаем без выходных</p>
-        <h1 class="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-5xl">
+        <p class="mb-4 inline-block rounded-full bg-blue-50 px-4 py-1.5 text-sm font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">Минск · работаем без выходных</p>
+        <h1 class="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white md:text-5xl">
           Ремонт стартеров и&nbsp;генераторов в Минске
         </h1>
-        <p class="mt-5 text-lg leading-relaxed text-slate-600">
+        <p class="mt-5 text-lg leading-relaxed text-slate-600 dark:text-slate-400">
           Узкая специализация, свой склад запчастей и стенд проверки. Осмотр автомобиля в день обращения.
           Точную цену называем до начала работ.
         </p>
@@ -38,9 +38,9 @@ import { site, advantages, steps } from '../data/site';
       </div>
       <div class="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
         {advantages.map((a) => (
-          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-            <div class="font-bold text-slate-900">{a.title}</div>
-            <div class="mt-1 text-sm leading-snug text-slate-500">{a.text}</div>
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800/60">
+            <div class="font-bold text-slate-900 dark:text-white">{a.title}</div>
+            <div class="mt-1 text-sm leading-snug text-slate-500 dark:text-slate-400">{a.text}</div>
           </div>
         ))}
       </div>
@@ -52,15 +52,15 @@ import { site, advantages, steps } from '../data/site';
   <Gallery />
 
   <!-- Как мы работаем -->
-  <section class="bg-white">
+  <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-6xl px-4 py-16">
-      <h2 class="mb-10 text-center text-3xl font-extrabold tracking-tight text-slate-900">Как мы работаем</h2>
+      <h2 class="mb-10 text-center text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Как мы работаем</h2>
       <div class="grid gap-5 md:grid-cols-4">
         {steps.map((s, i) => (
-          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800/60">
             <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 font-extrabold text-white">{i + 1}</div>
-            <div class="mt-4 font-bold text-slate-900">{s.title}</div>
-            <p class="mt-2 text-sm leading-relaxed text-slate-500">{s.text}</p>
+            <div class="mt-4 font-bold text-slate-900 dark:text-white">{s.title}</div>
+            <p class="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{s.text}</p>
           </div>
         ))}
       </div>
@@ -73,10 +73,10 @@ import { site, advantages, steps } from '../data/site';
   <HomeContacts />
 
   <!-- Финальный CTA -->
-  <section class="bg-white">
+  <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-6xl px-4 py-16 text-center">
-      <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Стартер щёлкает? Генератор не заряжает?</h2>
-      <p class="mx-auto mt-3 max-w-xl text-slate-600">Позвоните — подскажем по симптомам и записываться не нужно: приезжайте в любой день с 9:00 до 19:00.</p>
+      <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Стартер щёлкает? Генератор не заряжает?</h2>
+      <p class="mx-auto mt-3 max-w-xl text-slate-600 dark:text-slate-400">Позвоните — подскажем по симптомам и записываться не нужно: приезжайте в любой день с 9:00 до 19:00.</p>
       <div class="mt-8 flex flex-wrap justify-center gap-3">
         <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">Позвонить</a>
         <MessengerButtons size="lg" />
