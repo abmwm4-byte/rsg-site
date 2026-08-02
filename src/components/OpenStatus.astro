@@ -1,0 +1,18 @@
+---
+// Живой статус «открыто/закрыто» по времени Минска (часы работы 9:00–19:00)
+---
+
+<span class="inline-flex items-center gap-1.5 font-semibold">
+  <span id="open-dot" class="h-2 w-2 rounded-full bg-emerald-300"></span>
+  <span id="open-text">9:00–19:00</span>
+</span>
+
+<script>
+  const text = document.getElementById('open-text');
+  const dot = document.getElementById('open-dot');
+  const minskNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Minsk' }));
+  const h = minskNow.getHours();
+  const open = h >= 9 && h < 19;
+  text.textContent = open ? 'Открыто · до 19:00' : 'Закрыто · откроемся в 9:00';
+  dot.className = 'h-2 w-2 rounded-full ' + (open ? 'bg-emerald-300' : 'bg-red-400');
+</script>

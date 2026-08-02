@@ -1,0 +1,45 @@
+---
+import { site } from '../data/site';
+
+interface Props {
+  variant?: 'primary' | 'outline';
+}
+const { variant = 'outline' } = Astro.props;
+
+const { lat, lng } = site.geo;
+// Схема приложения Яндекс Навигатора + веб-фолбэк с построением маршрута от геопозиции
+const naviUrl = `yandexnavi://build_route_on_map?lat_to=${lat}&lon_to=${lng}`;
+const webUrl = `https://yandex.by/maps/?rtext=~${lat}%2C${lng}&rtt=auto`;
+
+const classes = variant === 'primary'
+  ? 'rounded-2xl bg-blue-600 px-6 py-3 font-bold text-white transition hover:bg-blue-700'
+  : 'rounded-2xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-600';
+---
+
+<a
+  href={webUrl}
+  data-navi={naviUrl}
+  data-goal="route"
+  class={`route-btn inline-flex items-center gap-2 ${classes}`}
+>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 11 19-9-9 19-2-8-8-2Z"/></svg>
+  Маршрут
+</a>
+
+<script>
+  document.querySelectorAll('.route-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      // На десктопе — обычный переход в веб-карты
+      if (!/iPhone|iPad|Android/i.test(navigator.userAgent)) return;
+      e.preventDefault();
+      const navi = btn.getAttribute('data-navi');
+      const web = btn.getAttribute('href');
+      let opened = false;
+      const markOpened = () => { opened = true; };
+      document.addEventListener('visibilitychange', markOpened, { once: true });
+      window.location.href = navi;
+      // Если приложение не установлено — через 1.5с открываем веб-версию
+      setTimeout(() => { if (!opened) window.location.href = web; }, 1500);
+    });
+  });
+</script>
