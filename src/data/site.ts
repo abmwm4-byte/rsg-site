@@ -15,8 +15,10 @@ export const site = {
     { label: 'А1', number: '+375 29 153-92-22', href: 'tel:+375291539222' },
   ],
   messengers: [
-    // TODO: уточнить у друга username Telegram (сейчас плейсхолдер)
-    { name: 'Telegram', href: 'https://t.me/remontstarterov', goal: 'telegram' },
+    // TODO(telegram): кнопка скрыта, пока у друга нет username.
+    // Telegram НЕ умеет открывать чат по номеру — только по username (t.me/username).
+    // Как друг создаст username (Настройки → Изменить → Имя пользователя),
+    // вернуть строку: { name: 'Telegram', href: 'https://t.me/USERNAME', goal: 'telegram' },
     { name: 'WhatsApp', href: 'https://wa.me/375291539222?text=' + encodeURIComponent('Здравствуйте! Вопрос по ремонту стартера/генератора.'), goal: 'whatsapp' },
     { name: 'Viber', href: 'viber://chat?number=%2B375291539222', goal: 'viber' },
   ],
