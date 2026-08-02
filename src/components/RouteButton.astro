@@ -8,9 +8,12 @@ interface Props {
 const { variant = 'outline', size = 'md' } = Astro.props;
 
 const { lat, lng } = site.geo;
-// Схема приложения Яндекс Навигатора + веб-фолбэк с построением маршрута от геопозиции
-const naviUrl = `yandexnavi://build_route_on_map?lat_to=${lat}&lon_to=${lng}`;
+// Схема приложения Яндекс Навигатора: сразу строит маршрут от геопозиции до сервиса
+const naviScheme = `yandexnavi://build_route_on_map?lat_to=${lat}&lon_to=${lng}`;
+// Веб-фолбэк: построение маршрута в Яндекс.Картах
 const webUrl = `https://yandex.by/maps/?rtext=~${lat}%2C${lng}&rtt=auto`;
+// Android intent: открывает Навигатор; если не установлен — автоматически веб-фолбэк
+const intentUrl = `intent://build_route_on_map?lat_to=${lat}&lon_to=${lng}#Intent;scheme=yandexnavi;package=ru.yandex.yandexnavi;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
 
 const sizeClasses = size === 'lg' ? 'px-8 py-4 text-lg' : 'px-6 py-3';
 const classes = variant === 'primary'
@@ -20,7 +23,8 @@ const classes = variant === 'primary'
 
 <a
   href={webUrl}
-  data-navi={naviUrl}
+  data-scheme={naviScheme}
+  data-intent={intentUrl}
   data-goal="route"
   class={`route-btn inline-flex items-center gap-2 ${classes}`}
 >
@@ -32,17 +36,25 @@ const classes = variant === 'primary'
   document.querySelectorAll('.route-btn:not([data-route-bound])').forEach((btn) => {
     btn.setAttribute('data-route-bound', '1');
     btn.addEventListener('click', (e) => {
-      // На десктопе — обычный переход в веб-карты
-      if (!/iPhone|iPad|Android/i.test(navigator.userAgent)) return;
+      const ua = navigator.userAgent;
+      const isAndroid = /Android/i.test(ua);
+      const isIOS = /iPhone|iPad/i.test(ua);
+      // Десктоп — обычный переход в веб-карты
+      if (!isAndroid && !isIOS) return;
       e.preventDefault();
-      const navi = btn.getAttribute('data-navi');
-      const web = btn.getAttribute('href');
+
+      if (isAndroid) {
+        // intent:// — мгновенно открывает Навигатор с маршрутом,
+        // без приложения сам уходит на browser_fallback_url
+        window.location.href = btn.getAttribute('data-intent');
+        return;
+      }
+
+      // iOS: схема приложения + таймер-фолбэк на веб, если Навигатора нет
       let opened = false;
-      const markOpened = () => { opened = true; };
-      document.addEventListener('visibilitychange', markOpened, { once: true });
-      window.location.href = navi;
-      // Если приложение не установлено — через 1.5с открываем веб-версию
-      setTimeout(() => { if (!opened) window.location.href = web; }, 1500);
+      document.addEventListener('visibilitychange', () => { opened = true; }, { once: true });
+      window.location.href = btn.getAttribute('data-scheme');
+      setTimeout(() => { if (!opened) window.location.href = btn.getAttribute('href'); }, 1500);
     });
   });
 </script>

@@ -16,7 +16,7 @@ const path = Astro.url.pathname;
 <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
   <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
     <a href="/" class="text-2xl font-extrabold tracking-tight text-slate-900">RSG <span class="text-blue-600">Group</span></a>
-    <nav class="hidden gap-7 text-sm font-medium md:flex">
+    <nav class="hidden gap-7 text-sm font-medium lg:flex">
       {nav.map((item) => (
         <a
           href={item.href}
@@ -30,9 +30,9 @@ const path = Astro.url.pathname;
     <a
       href={site.phones[0].href}
       data-goal="call"
-      class="hidden rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white shadow-sm transition hover:bg-blue-700 md:block"
+      class="hidden rounded-xl bg-blue-600 px-5 py-2.5 font-semibold text-white shadow-sm transition hover:bg-blue-700 lg:block"
     >{site.phones[0].number}</a>
-    <details class="relative md:hidden">
+    <details class="relative lg:hidden" id="mobile-menu">
       <summary class="list-none rounded-xl border border-slate-300 p-2.5 text-slate-700 [&::-webkit-details-marker]:hidden" aria-label="Меню">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </summary>
@@ -44,3 +44,11 @@ const path = Astro.url.pathname;
     </details>
   </div>
 </header>
+
+<script>
+  // Закрытие мобильного меню при тапе вне его
+  const menu = document.getElementById('mobile-menu');
+  document.addEventListener('click', (e) => {
+    if (menu.open && !menu.contains(e.target)) menu.open = false;
+  });
+</script>
