@@ -1,14 +1,61 @@
 ---
 import { site } from '../data/site';
+
+const star = 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z';
+const stars = Array.from({ length: 5 });
 ---
 
-<section class="bg-white">
-  <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-8 px-4 py-16">
-    <div class="flex h-24 w-24 items-center justify-center rounded-3xl bg-amber-100 text-4xl font-extrabold text-amber-600">{site.rating.value}</div>
-    <div>
-      <div class="text-xl font-bold text-slate-900">{site.rating.reviewsCount} отзывов на {site.rating.source}</div>
-      <p class="mt-1 max-w-lg text-slate-600">Клиенты отмечают скорость, честные цены и гарантию на работы. Мы отвечаем на каждый отзыв.</p>
-      <a href={site.yandexMapsUrl} target="_blank" rel="noopener" class="mt-2 inline-block font-semibold text-blue-600 hover:underline">Читать отзывы →</a>
+<section class="border-y border-amber-100 bg-gradient-to-br from-amber-50 via-white to-white">
+  <div class="mx-auto max-w-6xl px-4 py-14">
+    <div class="flex flex-col items-center gap-8 text-center md:flex-row md:gap-12 md:text-left">
+
+      <!-- Медаль -->
+      <div class="relative shrink-0">
+        <div class="flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-amber-500 shadow-lg shadow-amber-500/30 ring-4 ring-amber-200">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="#fff"><path d={star} /></svg>
+        </div>
+        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-amber-500 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow">
+          Высокий рейтинг
+        </div>
+      </div>
+
+      <!-- Оценка и звёзды -->
+      <div>
+        <div class="flex items-end justify-center gap-3 md:justify-start">
+          <span class="text-6xl font-extrabold leading-none text-slate-900">{site.rating.value}</span>
+          <div class="relative pb-1.5">
+            <div class="flex text-slate-200">
+              {stars.map(() => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d={star} /></svg>)}
+            </div>
+            <div class="absolute inset-0 overflow-hidden" style={`width: ${(site.rating.value / 5) * 100}%`}>
+              <div class="flex text-amber-400">
+                {stars.map(() => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d={star} /></svg>)}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-2 text-lg font-bold text-slate-900">
+          {site.rating.reviewsCount} отзывов на {site.rating.source}
+        </div>
+        <p class="mt-1 max-w-md text-slate-600">
+          Клиенты отмечают скорость, честные цены и гарантию на работы.
+          Мы отвечаем на каждый отзыв.
+        </p>
+      </div>
+
+      <!-- Кнопки -->
+      <div class="flex flex-col gap-2 md:ml-auto">
+        <a
+          href={site.yandexMapsUrl}
+          target="_blank" rel="noopener"
+          class="rounded-2xl bg-blue-600 px-6 py-3 text-center font-bold text-white transition hover:bg-blue-700"
+        >Читать отзывы</a>
+        <a
+          href={site.yandexMapsUrl}
+          target="_blank" rel="noopener"
+          class="rounded-2xl border border-slate-300 bg-white px-6 py-3 text-center font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-600"
+        >Оставить отзыв</a>
+      </div>
     </div>
   </div>
 </section>
