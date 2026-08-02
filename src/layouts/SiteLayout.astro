@@ -58,28 +58,5 @@ const schema = {
     }
     syncMaps();
     new MutationObserver(syncMaps).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-
-    // Кнопки «Маршрут» (.route-btn): мгновенное открытие Яндекс Навигатора на мобильных
-    document.querySelectorAll('.route-btn:not([data-route-bound])').forEach((btn) => {
-      btn.setAttribute('data-route-bound', '1');
-      btn.addEventListener('click', (e) => {
-        const ua = navigator.userAgent;
-        const isAndroid = /Android/i.test(ua);
-        const isIOS = /iPhone|iPad/i.test(ua);
-        if (!isAndroid && !isIOS) return; // десктоп — веб-карты по href
-
-        e.preventDefault();
-        if (isAndroid) {
-          // intent:// открывает Навигатор с маршрутом; без приложения — веб-фолбэк
-          window.location.href = btn.getAttribute('data-intent');
-          return;
-        }
-        // iOS: схема приложения + таймер-фолбэк на веб
-        let opened = false;
-        document.addEventListener('visibilitychange', () => { opened = true; }, { once: true });
-        window.location.href = btn.getAttribute('data-scheme');
-        setTimeout(() => { if (!opened) window.location.href = btn.getAttribute('href'); }, 1500);
-      });
-    });
   </script>
 </Base>

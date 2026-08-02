@@ -1,8 +1,7 @@
 ---
 import { site } from '../data/site';
 
-// Обработчик кликов — в SiteLayout.astro (один на страницу для всех .route-btn)
-// На мобильных — компактная иконка, текст «Маршрут» появляется с sm
+// Кнопка «Маршрут» — ведёт в карточку RSG Group в Яндекс.Картах (приложение или браузер)
 interface Props {
   variant?: 'primary' | 'outline';
   size?: 'md' | 'lg';
@@ -19,8 +18,6 @@ const classes = variant === 'primary'
 
 <a
   href={site.route.web}
-  data-scheme={site.route.scheme}
-  data-intent={site.route.intent}
   data-goal="route"
   class={`route-btn inline-flex items-center gap-2 ${classes}`}
 >

@@ -27,12 +27,11 @@ export const site = {
   yandexMapsUrl: 'https://yandex.by/maps/org/rsg_group/151564311231/reviews/',
   warranty: '3 месяца',
   route: {
-    // Веб-карты: карточка RSG Group (название, рейтинг, кнопка «Маршрут» там)
+    // Карточка RSG Group в Яндекс.Картах. Универсальная ссылка: с приложением
+    // Яндекс.Карт откроется в нём, без приложения — в браузере.
+    // От карточки маршрут строится в один тап, точка назначения точная (org pin).
+    // Схема yandexnavi:// НЕ используется: умеет вести только к голым координатам.
     web: 'https://yandex.by/maps/157/minsk/?mode=poi&poi%5Bpoint%5D=27.478593%2C53.891673&poi%5Buri%5D=ymapsbm1%3A%2F%2Forg%3Foid%3D151564311231&z=16',
-    // Схема Яндекс Навигатора (iOS): сразу строит маршрут от геопозиции
-    scheme: 'yandexnavi://build_route_on_map?lat_to=53.8917778&lon_to=27.4790148',
-    // Android intent: Навигатор, при отсутствии — веб-фолбэк на карточку
-    intent: 'intent://build_route_on_map?lat_to=53.8917778&lon_to=27.4790148#Intent;scheme=yandexnavi;package=ru.yandex.yandexnavi;S.browser_fallback_url=https%3A%2F%2Fyandex.by%2Fmaps%2F157%2Fminsk%2F%3Fmode%3Dpoi%26poi%255Bpoint%255D%3D27.478593%252C53.891673%26poi%255Buri%255D%3Dymapsbm1%253A%252F%252Forg%253Foid%253D151564311231%26z%3D16;end',
   },
   europochta: {
     // Ближайшее к сервису отделение (по Яндекс.Картам, ~1 км)
