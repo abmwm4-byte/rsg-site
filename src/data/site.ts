@@ -15,10 +15,10 @@ export const site = {
     { label: 'А1', number: '+375 29 153-92-22', href: 'tel:+375291539222' },
   ],
   messengers: [
-    // TODO(telegram): кнопка скрыта, пока у друга нет username.
-    // Telegram НЕ умеет открывать чат по номеру — только по username (t.me/username).
-    // Как друг создаст username (Настройки → Изменить → Имя пользователя),
-    // вернуть строку: { name: 'Telegram', href: 'https://t.me/USERNAME', goal: 'telegram' },
+    // Telegram: чат по номеру (t.me/+PHONE). Работает, если у владельца номера в
+    // настройках «Конфиденциальность → Кто может найти меня по номеру» стоит «Все».
+    // Когда появится username — заменить на https://t.me/USERNAME (красивее: имя вместо номера).
+    { name: 'Telegram', href: 'https://t.me/+375291539222', goal: 'telegram' },
     { name: 'WhatsApp', href: 'https://wa.me/375291539222?text=' + encodeURIComponent('Здравствуйте! Вопрос по ремонту стартера/генератора.'), goal: 'whatsapp' },
     { name: 'Viber', href: 'viber://chat?number=%2B375291539222', goal: 'viber' },
   ],
