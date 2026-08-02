@@ -36,6 +36,7 @@ export const nav = [
   { label: 'Стартеры', href: '/remont-starterov/' },
   { label: 'Генераторы', href: '/remont-generatorov/' },
   { label: 'Диагностика', href: '/diagnostika/' },
+  { label: 'Кейсы', href: '/keisy/' },
   { label: 'Для регионов', href: '/dlya-regionov/' },
   { label: 'Контакты', href: '/kontakty/' },
 ];
