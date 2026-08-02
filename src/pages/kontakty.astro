@@ -1,0 +1,67 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import MessengerButtons from '../components/MessengerButtons.astro';
+import { site } from '../data/site';
+
+const mapsFrame = `https://yandex.by/map-widget/v1/?display-text=${encodeURIComponent('Ремонт стартеров и генераторов')}&ll=${site.geo.lng}%2C${site.geo.lat}&mode=search&poi%5Bpoint%5D=${site.geo.lng}%2C${site.geo.lat}&poi%5Buri%5D=ymapsbm1%3A%2F%2Forg%3Foid%3D151564311231&z=16`;
+---
+
+<SiteLayout
+  title="Контакты — автосервис RSG Group, Минск, 2-й Короткий пер. 23"
+  description="Автосервис RSG Group: г. Минск, 2-й Короткий пер., 23. Работаем без выходных с 9:00 до 19:00. Телефоны А1 и МТС, Viber, Telegram, WhatsApp. Как проехать."
+>
+  <section class="bg-white">
+    <div class="mx-auto max-w-6xl px-4 pb-12 pt-12">
+      <nav class="mb-4 text-sm text-slate-500"><a href="/" class="hover:text-blue-600">Главная</a> / <span class="text-slate-700">Контакты</span></nav>
+      <h1 class="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-5xl">Контакты</h1>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 py-16">
+    <div class="grid gap-8 md:grid-cols-2">
+      <!-- Карточка контактов -->
+      <div class="space-y-6">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6">
+          <div class="text-sm font-semibold uppercase tracking-wide text-slate-500">Адрес</div>
+          <div class="mt-2 text-xl font-bold text-slate-900">{site.address}</div>
+          <a
+            href={`https://yandex.by/maps/?text=${encodeURIComponent(site.addressShort)}`}
+            target="_blank" rel="noopener"
+            class="mt-2 inline-block font-semibold text-blue-600 hover:underline"
+          >Построить маршрут →</a>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-6">
+          <div class="text-sm font-semibold uppercase tracking-wide text-slate-500">Режим работы</div>
+          <div class="mt-2 text-xl font-bold text-slate-900">9:00–19:00</div>
+          <div class="text-slate-600">Без выходных</div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-6">
+          <div class="text-sm font-semibold uppercase tracking-wide text-slate-500">Телефоны</div>
+          {site.phones.map((p) => (
+            <a href={p.href} data-goal="call" class="mt-2 block text-xl font-bold text-slate-900 transition hover:text-blue-600">
+              {p.label}: {p.number}
+            </a>
+          ))}
+          <div class="mt-4">
+            <div class="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Мессенджеры</div>
+            <MessengerButtons />
+          </div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
+          {site.legalName} · УНП: {site.unp}
+        </div>
+      </div>
+
+      <!-- Карта -->
+      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <iframe
+          src={mapsFrame}
+          title="Карта: автосервис RSG Group, Минск"
+          class="h-full min-h-[400px] w-full"
+          loading="lazy"
+          allowfullscreen
+        ></iframe>
+      </div>
+    </div>
+  </section>
+</SiteLayout>

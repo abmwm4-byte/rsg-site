@@ -1,0 +1,14 @@
+---
+import { site } from '../data/site';
+---
+
+<section class="bg-white">
+  <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-8 px-4 py-16">
+    <div class="flex h-24 w-24 items-center justify-center rounded-3xl bg-amber-100 text-4xl font-extrabold text-amber-600">{site.rating.value}</div>
+    <div>
+      <div class="text-xl font-bold text-slate-900">{site.rating.reviewsCount} отзывов на {site.rating.source}</div>
+      <p class="mt-1 max-w-lg text-slate-600">Клиенты отмечают скорость, честные цены и гарантию на работы. Мы отвечаем на каждый отзыв.</p>
+      <a href={site.yandexMapsUrl} target="_blank" rel="noopener" class="mt-2 inline-block font-semibold text-blue-600 hover:underline">Читать отзывы →</a>
+    </div>
+  </div>
+</section>

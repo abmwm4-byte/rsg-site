@@ -1,0 +1,109 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import MessengerButtons from '../components/MessengerButtons.astro';
+import Faq from '../components/Faq.astro';
+import { site } from '../data/site';
+
+const regionSteps = [
+  { title: 'Свяжитесь с нами', text: 'Позвоните или напишите в мессенджер. Опишите симптомы — подскажем, стоит ли отправлять узел.' },
+  { title: 'Снимите узел и упакуйте', text: 'Снимите стартер или генератор, плотно упакуйте в коробку. Вложите записку с телефоном и описанием проблемы.' },
+  { title: 'Отправьте Европочтой', text: 'До отделения: ' + site.europochta.branch + '. Получатель — ' + site.legalName + ', ' + site.phones[0].number + '. Пришлите нам номер накладной. Доставку оплачиваем мы.' },
+  { title: 'Диагностика и согласование', text: 'Забираем узел из отделения, проверяем на стенде, звоним вам и называем точную цену. Работы начинаем только после вашего согласия.' },
+  { title: 'Оплата и возврат', text: 'Оплата переводом после согласования. Отправляем отремонтированный узел обратно Европочтой — снова за наш счёт.' },
+];
+
+const regionFaq = [
+  {
+    q: 'Сколько времени занимает ремонт по почте?',
+    a: 'Диагностика — в день получения узла. Типовой ремонт — 1–2 дня, плюс доставка Европочтой в обе стороны. Обычно весь цикл занимает 3–5 дней.', // TODO(прайс)
+  },
+  {
+    q: 'Кто оплачивает доставку?',
+    a: 'Мы. Доставка Европочтой в обе стороны — за наш счёт, вы оплачиваете только сам ремонт.',
+  },
+  {
+    q: 'Что делать, если узел окажется неремонтопригодным?',
+    a: 'Скажем об этом честно после диагностики и предложим варианты: возврат узла или замена на восстановленный/новый.', // TODO(прайс)
+  },
+  {
+    q: 'Даёте ли гарантию при ремонте по почте?',
+    a: 'Да, условия те же, что и при личном визите: официальная гарантия 3 месяца на работы и запчасти.',
+  },
+];
+---
+
+<SiteLayout
+  title="Ремонт стартеров и генераторов по почте со всей Беларуси — Европочта | RSG Group"
+  description="Отправьте стартер или генератор Европочтой из любого города Беларуси — диагностика в день получения, ремонт 1–2 дня, гарантия. Брест, Гродно, Витебск, Гомель, Могилёв и другие города."
+>
+  <section class="bg-white">
+    <div class="mx-auto max-w-6xl px-4 pb-12 pt-12">
+      <nav class="mb-4 text-sm text-slate-500"><a href="/" class="hover:text-blue-600">Главная</a> / <span class="text-slate-700">Для регионов</span></nav>
+      <h1 class="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-5xl">Ремонт по почте со всей Беларуси</h1>
+      <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
+        Живёте не в Минске? Отправьте стартер или генератор Европочтой — проверим на стенде,
+        отремонтируем и вернём. Весь цикл обычно занимает 3–5 дней.
+      </p>
+      <div class="mt-8 flex flex-wrap items-center gap-3">
+        <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">{site.phones[0].number}</a>
+        <MessengerButtons size="lg" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Шаги -->
+  <section class="mx-auto max-w-6xl px-4 py-16">
+    <h2 class="mb-10 text-3xl font-extrabold tracking-tight text-slate-900">Как это работает — 5 шагов</h2>
+    <div class="space-y-4">
+      {regionSteps.map((s, i) => (
+        <div class="flex gap-5 rounded-2xl border border-slate-200 bg-white p-6">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 font-extrabold text-white">{i + 1}</div>
+          <div>
+            <div class="font-bold text-slate-900">{s.title}</div>
+            <p class="mt-1 leading-relaxed text-slate-600">{s.text}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Отделение Европочты -->
+  <section class="mx-auto max-w-6xl px-4 pb-16">
+    <div class="rounded-3xl bg-gradient-to-br from-blue-700 to-blue-900 p-8 text-white md:p-10">
+      <h2 class="text-2xl font-extrabold tracking-tight">Куда отправлять</h2>
+      <p class="mt-3 max-w-2xl text-blue-100">Ближайшее к нам отделение Европочты — заберём узел в день поступления:</p>
+      <div class="mt-5 rounded-2xl bg-white/10 p-5">
+        <div class="text-lg font-bold">{site.europochta.branch}</div>
+        <div class="mt-1 text-blue-100">Работает {site.europochta.hours} · Получатель: {site.legalName}, {site.phones[0].number}</div>
+      </div>
+      <p class="mt-4 font-semibold text-white">{site.europochta.shippingNote}</p>
+    </div>
+  </section>
+
+  <!-- Города -->
+  <section class="bg-white">
+    <div class="mx-auto max-w-6xl px-4 py-16">
+      <h2 class="mb-6 text-3xl font-extrabold tracking-tight text-slate-900">Откуда к нам отправляют</h2>
+      <div class="flex flex-wrap gap-3">
+        {['Брест', 'Гродно', 'Витебск', 'Гомель', 'Могилёв', 'Барановичи', 'Пинск', 'Лида', 'Борисов', 'Солигорск', 'Молодечно', 'Жодино'].map((city) => (
+          <span class="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700">{city}</span>
+        ))}
+        <span class="rounded-full bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">и любой другой город</span>
+      </div>
+    </div>
+  </section>
+
+  <Faq items={regionFaq} title="Вопросы о ремонте по почте" />
+
+  <!-- CTA -->
+  <section class="bg-white">
+    <div class="mx-auto max-w-6xl px-4 py-16 text-center">
+      <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Остались вопросы по отправке?</h2>
+      <p class="mx-auto mt-3 max-w-xl text-slate-600">Позвоните или напишите в мессенджер — расскажем, как снять узел и что указать в накладной.</p>
+      <div class="mt-8 flex flex-wrap justify-center gap-3">
+        <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">Позвонить</a>
+        <MessengerButtons size="lg" />
+      </div>
+    </div>
+  </section>
+</SiteLayout>

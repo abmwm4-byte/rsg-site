@@ -1,0 +1,80 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import ServicesGrid from '../components/ServicesGrid.astro';
+import Calculator from '../components/Calculator.astro';
+import Gallery from '../components/Gallery.astro';
+import RatingBadge from '../components/RatingBadge.astro';
+import RegionBlock from '../components/RegionBlock.astro';
+import MessengerButtons from '../components/MessengerButtons.astro';
+import { site, advantages, steps } from '../data/site';
+---
+
+<SiteLayout
+  title="Ремонт стартеров и генераторов в Минске — автосервис RSG Group"
+  description="Ремонт стартеров и генераторов любой сложности в Минске. Осмотр в день обращения, свой склад запчастей, официальная гарантия. Работаем без выходных 9:00–19:00. Принимаем узлы Европочтой со всей Беларуси."
+>
+  <!-- Hero -->
+  <section class="bg-white">
+    <div class="mx-auto max-w-6xl px-4 pb-16 pt-14 md:pt-20">
+      <div class="max-w-2xl">
+        <p class="mb-4 inline-block rounded-full bg-blue-50 px-4 py-1.5 text-sm font-semibold text-blue-700">Минск · работаем без выходных</p>
+        <h1 class="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-5xl">
+          Ремонт стартеров и&nbsp;генераторов в Минске
+        </h1>
+        <p class="mt-5 text-lg leading-relaxed text-slate-600">
+          Узкая специализация, свой склад запчастей и стенд проверки. Осмотр автомобиля в день обращения.
+          Точную цену называем до начала работ.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center gap-3">
+          <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">
+            {site.phones[0].number}
+          </a>
+          <MessengerButtons size="lg" />
+        </div>
+      </div>
+      <div class="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
+        {advantages.map((a) => (
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <div class="font-bold text-slate-900">{a.title}</div>
+            <div class="mt-1 text-sm leading-snug text-slate-500">{a.text}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <ServicesGrid />
+  <Calculator />
+  <Gallery />
+
+  <!-- Как мы работаем -->
+  <section class="bg-white">
+    <div class="mx-auto max-w-6xl px-4 py-16">
+      <h2 class="mb-10 text-center text-3xl font-extrabold tracking-tight text-slate-900">Как мы работаем</h2>
+      <div class="grid gap-5 md:grid-cols-4">
+        {steps.map((s, i) => (
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 font-extrabold text-white">{i + 1}</div>
+            <div class="mt-4 font-bold text-slate-900">{s.title}</div>
+            <p class="mt-2 text-sm leading-relaxed text-slate-500">{s.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <RatingBadge />
+  <RegionBlock />
+
+  <!-- Финальный CTA -->
+  <section class="bg-white">
+    <div class="mx-auto max-w-6xl px-4 py-16 text-center">
+      <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Стартер щёлкает? Генератор не заряжает?</h2>
+      <p class="mx-auto mt-3 max-w-xl text-slate-600">Позвоните — подскажем по симптомам и записываться не нужно: приезжайте в любой день с 9:00 до 19:00.</p>
+      <div class="mt-8 flex flex-wrap justify-center gap-3">
+        <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">Позвонить</a>
+        <MessengerButtons size="lg" />
+      </div>
+    </div>
+  </section>
+</SiteLayout>

@@ -1,0 +1,50 @@
+---
+import Base from './Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import StickyCta from '../components/StickyCta.astro';
+import Analytics from '../components/Analytics.astro';
+import { site } from '../data/site';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'AutoRepair',
+  name: site.legalName,
+  url: site.url,
+  telephone: site.phones[0].number,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: '2-й Короткий пер., 23',
+    addressLocality: 'Минск',
+    addressCountry: 'BY',
+  },
+  geo: { '@type': 'GeoCoordinates', latitude: site.geo.lat, longitude: site.geo.lng },
+  openingHours: site.hoursSchema,
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: site.rating.value,
+    reviewCount: site.rating.reviewsCount,
+  },
+};
+---
+
+<Base title={title} description={description}>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  <div class="min-h-screen bg-slate-50 font-[Inter] text-slate-800 antialiased">
+    <Header />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+    <StickyCta />
+    <Analytics />
+  </div>
+</Base>

@@ -1,0 +1,23 @@
+---
+// TODO(фото): заменить стоковые фото на реальные фото мастерской.
+const photos = [
+  { src: '/images/workshop-engine.jpg', alt: 'Двигатель автомобиля — ремень и ролики генератора' },
+  { src: '/images/workshop-hands.jpg', alt: 'Мастер ремонтирует узел в мастерской' },
+  { src: '/images/workshop-oil.jpg', alt: 'Обслуживание автомобиля в сервисе' },
+  { src: '/images/workshop-garage.jpg', alt: 'Бокс автосервиса с подъёмниками' },
+];
+---
+
+<section class="mx-auto max-w-6xl px-4 py-16">
+  <h2 class="mb-8 text-3xl font-extrabold tracking-tight text-slate-900">Наша мастерская</h2>
+  <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+    {photos.map((p) => (
+      <img
+        src={p.src}
+        alt={p.alt}
+        loading="lazy"
+        class="aspect-[4/3] w-full rounded-2xl border border-slate-200 object-cover"
+      />
+    ))}
+  </div>
+</section>
