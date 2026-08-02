@@ -9,30 +9,16 @@ const stars = Array.from({ length: 5 });
   <div class="mx-auto max-w-6xl px-4 py-14">
     <div class="flex flex-col items-center gap-8 text-center md:flex-row md:gap-12 md:text-left">
 
-      <!-- Штатный бейдж «Хорошее место» (SVG по официальному референсу Яндекса) -->
-      <!-- TODO(бейдж): заменить на официальный PNG из кабинета Яндекс Бизнеса -->
+      <!-- Официальный бейдж «Хорошее место» с yandex.ru/project/maps/goodplace/ -->
       <div class="shrink-0">
-        <svg viewBox="0 0 120 150" class="h-40 w-auto drop-shadow-lg" role="img" aria-label="Награда Яндекс Карт «Хорошее место»">
-          <!-- лента -->
-          <path d="M24 14 Q24 6 32 6 H88 Q96 6 96 14 V136 L60 118 L24 136 Z" fill="#fff" stroke="#e2e8f0" stroke-width="1.5" />
-          <!-- пин -->
-          <path d="M60 26 C49 26 40 35 40 47 C40 63 60 83 60 83 C60 83 80 63 80 47 C80 35 71 26 60 26 Z" fill="#FC3F1D" />
-          <circle cx="60" cy="47" r="9" fill="#fff" />
-          <!-- лавровые ветви -->
-          <g fill="#FBBF24" stroke="#D97706" stroke-width="0.8">
-            <ellipse rx="7" ry="3.5" transform="translate(18 112) rotate(60)" />
-            <ellipse rx="7" ry="3.5" transform="translate(20 103) rotate(42)" />
-            <ellipse rx="7" ry="3.5" transform="translate(24 95) rotate(25)" />
-            <ellipse rx="7" ry="3.5" transform="translate(29 88) rotate(8)" />
-            <ellipse rx="7" ry="3.5" transform="translate(102 112) rotate(-60)" />
-            <ellipse rx="7" ry="3.5" transform="translate(100 103) rotate(-42)" />
-            <ellipse rx="7" ry="3.5" transform="translate(96 95) rotate(-25)" />
-            <ellipse rx="7" ry="3.5" transform="translate(91 88) rotate(-8)" />
-          </g>
-          <!-- подпись -->
-          <text x="60" y="101" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="14" fill="#0f172a">Хорошее</text>
-          <text x="60" y="115" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="14" fill="#0f172a">место</text>
-        </svg>
+        <img
+          src="/images/good-place-badge.png"
+          alt="Награда Яндекс Карт «Хорошее место»"
+          width="320"
+          height="457"
+          loading="lazy"
+          class="h-44 w-auto drop-shadow-lg"
+        />
       </div>
 
       <!-- Оценка и звёзды -->
