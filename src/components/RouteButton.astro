@@ -10,7 +10,7 @@ interface Props {
 const { variant = 'outline', size = 'md' } = Astro.props;
 
 const sizeClasses = size === 'lg'
-  ? 'px-4 py-4 sm:px-8 sm:text-lg'
+  ? 'px-4 py-3.5 text-sm sm:px-8 sm:py-4 sm:text-lg'
   : 'px-3 py-3 sm:px-6';
 const classes = variant === 'primary'
   ? `rounded-2xl bg-blue-600 font-bold text-white transition hover:bg-blue-700 ${sizeClasses}`
@@ -25,5 +25,6 @@ const classes = variant === 'primary'
   class={`route-btn inline-flex items-center gap-2 ${classes}`}
 >
   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.6 2 4 5.6 4 10c0 5.4 8 12 8 12s8-6.6 8-12c0-4.4-3.6-8-8-8Zm0 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>
-  <span class="hidden sm:inline">Маршрут</span>
+  <span class="sm:hidden">Маршрут</span>
+  <span class="hidden sm:inline">Построить маршрут</span>
 </a>
