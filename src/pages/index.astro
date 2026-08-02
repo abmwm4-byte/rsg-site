@@ -28,13 +28,13 @@ import { site, advantages, steps } from '../data/site';
           Узкая специализация, свой склад запчастей и стенд проверки. Осмотр автомобиля в день обращения.
           Точную цену называем до начала работ.
         </p>
-        <div class="mt-8 flex flex-wrap items-center gap-3">
-          <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">
-            {site.phones[0].number}
-          </a>
-          <RouteButton size="lg" />
-          <MessengerButtons size="lg" />
-        </div>
+      </div>
+      <div class="mt-8 flex flex-wrap items-center gap-3">
+        <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">
+          {site.phones[0].number}
+        </a>
+        <RouteButton size="lg" />
+        <MessengerButtons size="lg" />
       </div>
       <div class="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
         {advantages.map((a) => (
