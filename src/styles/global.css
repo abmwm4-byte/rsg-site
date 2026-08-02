@@ -3,6 +3,12 @@
 /* Тёмная тема по классу .dark на <html> (переключатель Светлая/Авто/Тёмная) */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Секции вне экрана не рендерятся — ускорение скролла на длинных страницах */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
 /* Inter self-hosted (variable, 400–800), вместо Google Fonts — быстрее и без внешних запросов */
 @font-face {
   font-family: 'Inter';
