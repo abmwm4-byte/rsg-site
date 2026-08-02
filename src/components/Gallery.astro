@@ -9,13 +9,21 @@ const photos = [
 ---
 
 <section class="mx-auto max-w-6xl px-4 py-16">
-  <h2 class="mb-8 text-3xl font-extrabold tracking-tight text-slate-900">Наша мастерская</h2>
+  <div class="mb-8 grid items-end gap-6 md:grid-cols-2">
+    <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Наша мастерская</h2>
+    <p class="text-slate-600">
+      «RSG Group» — узкопрофильный сервис: с 2015 года ремонтируем только стартеры и генераторы.
+      Свой склад запчастей и стенд проверки под нагрузкой — большинство ремонтов отдаём в день обращения.
+    </p>
+  </div>
   <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
     {photos.map((p) => (
       <img
         src={p.src}
         alt={p.alt}
         loading="lazy"
+        width="1200"
+        height="900"
         class="aspect-[4/3] w-full rounded-2xl border border-slate-200 object-cover"
       />
     ))}

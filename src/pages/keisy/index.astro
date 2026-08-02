@@ -26,7 +26,7 @@ const cases = (await getCollection('cases')).sort((a, b) => b.data.date.valueOf(
       {cases.map((entry) => (
         <a href={`/keisy/${entry.id}/`} class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
           {(entry.data.after || entry.data.photo) && (
-            <img src={entry.data.after ?? entry.data.photo} alt={entry.data.title} loading="lazy" class="aspect-[16/9] w-full object-cover" />
+            <img src={entry.data.after ?? entry.data.photo} alt={entry.data.title} loading="lazy" width="1200" height="675" class="aspect-[16/9] w-full object-cover" />
           )}
           <div class="p-6">
             <div class="flex items-center gap-2">

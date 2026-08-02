@@ -60,11 +60,11 @@ const d = entry.data;
       </div>
 
       {d.photo && !d.before && (
-        <img src={d.photo} alt={d.title} loading="lazy" class="mt-8 aspect-[16/9] w-full rounded-3xl border border-slate-200 object-cover" />
+        <img src={d.photo} alt={d.title} loading="lazy" width="1200" height="675" class="mt-8 aspect-[16/9] w-full rounded-3xl border border-slate-200 object-cover" />
       )}
 
       <!-- История -->
-      <div class="prose prose-slate mt-8 max-w-none leading-relaxed text-slate-700 [&>p]:mb-4">
+      <div class="mt-8 max-w-none leading-relaxed text-slate-700 [&>p]:mb-4">
         <Content />
       </div>
 
@@ -76,7 +76,7 @@ const d = entry.data;
   </article>
 
   {d.before && d.after && (
-    <BeforeAfter before={d.before} after={d.after} demo={false} title="Фото до и после" subtitle="Реальные снимки этого ремонта" />
+    <BeforeAfter before={d.before} after={d.after} title="Фото до и после" subtitle="Реальные снимки этого ремонта" />
   )}
 
   <!-- CTA -->

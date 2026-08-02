@@ -26,8 +26,9 @@ const canonical = new URL(Astro.url.pathname, 'https://remontstarterov.by');
     <meta property="og:locale" content="ru_BY" />
     <meta property="og:image" content="https://remontstarterov.by/images/workshop-engine.jpg" />
     <meta name="theme-color" content="#2563eb" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-cyrillic.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-latin.woff2" />
   </head>
   <body>
     <slot />

@@ -24,6 +24,14 @@ export const site = {
   rating: { value: 4.9, reviewsCount: 66, source: 'Яндекс Карты' },
   yandexMapsUrl: 'https://yandex.by/maps/org/rsg_group/151564311231/reviews/',
   warranty: '3 месяца',
+  route: {
+    // Веб-карты: маршрут от геопозиции до сервиса
+    web: 'https://yandex.by/maps/?rtext=~53.8917778%2C27.4790148&rtt=auto',
+    // Схема Яндекс Навигатора (iOS)
+    scheme: 'yandexnavi://build_route_on_map?lat_to=53.8917778&lon_to=27.4790148',
+    // Android intent: Навигатор, при отсутствии — веб-фолбэк
+    intent: 'intent://build_route_on_map?lat_to=53.8917778&lon_to=27.4790148#Intent;scheme=yandexnavi;package=ru.yandex.yandexnavi;S.browser_fallback_url=https%3A%2F%2Fyandex.by%2Fmaps%2F%3Frtext%3D~53.8917778%252C27.4790148%26rtt%3Dauto;end',
+  },
   europochta: {
     // Ближайшее к сервису отделение (по Яндекс.Картам, ~1 км)
     branch: 'г. Минск, ул. Янки Мавра, 44 (ОПС 586, магазин «Мила»)',
@@ -225,32 +233,4 @@ export const quiz = [
   },
 ];
 
-// Калькулятор: приблизительные вилки. TODO(прайс): заменить на реальные.
-export const calculator = {
-  disclaimer: 'Расчёт приблизительный. Точную цену назовём после диагностики — она от 20 BYN и занимает 20–30 минут.', // TODO(прайс)
-  units: [
-    {
-      id: 'starter',
-      label: 'Стартер',
-      jobs: [
-        { id: 'diagnostics', label: 'Диагностика', min: 20, max: 30 }, // TODO(прайс)
-        { id: 'brushes', label: 'Замена щёток', min: 60, max: 90 }, // TODO(прайс)
-        { id: 'bendix', label: 'Замена бендикса', min: 80, max: 120 }, // TODO(прайс)
-        { id: 'relay', label: 'Втягивающее реле', min: 70, max: 110 }, // TODO(прайс)
-        { id: 'overhaul', label: 'Полная переборка', min: 120, max: 200 }, // TODO(прайс)
-      ],
-    },
-    {
-      id: 'generator',
-      label: 'Генератор',
-      jobs: [
-        { id: 'diagnostics', label: 'Диагностика', min: 20, max: 30 }, // TODO(прайс)
-        { id: 'brushes', label: 'Замена щёток', min: 50, max: 80 }, // TODO(прайс)
-        { id: 'bearings', label: 'Замена подшипников', min: 80, max: 130 }, // TODO(прайс)
-        { id: 'diode', label: 'Диодный мост', min: 90, max: 150 }, // TODO(прайс)
-        { id: 'regulator', label: 'Регулятор напряжения', min: 60, max: 100 }, // TODO(прайс)
-        { id: 'overhaul', label: 'Полная переборка', min: 130, max: 220 }, // TODO(прайс)
-      ],
-    },
-  ],
-};
+// Калькулятор удалён: квиз выше даёт вилку по симптому, детальные цены — в таблицах на страницах услуг.

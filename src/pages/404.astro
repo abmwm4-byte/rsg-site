@@ -1,0 +1,27 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import MessengerButtons from '../components/MessengerButtons.astro';
+import { site, nav } from '../data/site';
+---
+
+<SiteLayout
+  title="Страница не найдена — RSG Group, Минск"
+  description="Страница не найдена. Ремонт стартеров и генераторов в Минске: позвоните или выберите нужный раздел."
+>
+  <section class="mx-auto max-w-3xl px-4 py-24 text-center">
+    <div class="text-7xl font-extrabold text-blue-600">404</div>
+    <h1 class="mt-4 text-3xl font-extrabold tracking-tight text-slate-900">Такой страницы нет</h1>
+    <p class="mx-auto mt-3 max-w-md text-slate-600">
+      Возможно, она переехала вместе с новым сайтом. Но мы на месте — звоните или выберите раздел:
+    </p>
+    <div class="mt-8 flex flex-wrap justify-center gap-3">
+      <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">{site.phones[0].number}</a>
+      <MessengerButtons size="lg" />
+    </div>
+    <div class="mt-10 flex flex-wrap justify-center gap-2">
+      {nav.map((item) => (
+        <a href={item.href} class="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-blue-400 hover:text-blue-600">{item.label}</a>
+      ))}
+    </div>
+  </section>
+</SiteLayout>

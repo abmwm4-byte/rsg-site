@@ -1,21 +1,12 @@
 ---
-// Режим demo (главная): одно стоковое фото, «до» — затемнённая копия.
-// TODO(фото): заменить демо на реальные фото «до/после».
-// Режим с реальными фото (кейсы): передать before и after — фильтр не применяется.
+// Слайдер сравнения «до/после». Используется на страницах кейсов с реальными фото.
 interface Props {
-  before?: string;
-  after?: string;
+  before: string;
+  after: string;
   title?: string;
   subtitle?: string;
-  demo?: boolean;
 }
-const {
-  before = '/images/workshop-engine.jpg',
-  after = '/images/workshop-engine.jpg',
-  title = 'До и после ремонта',
-  subtitle = 'Потяните ползунок',
-  demo = true,
-} = Astro.props;
+const { before, after, title = 'До и после ремонта', subtitle = 'Потяните ползунок' } = Astro.props;
 ---
 
 <section class="bg-white">
@@ -23,41 +14,35 @@ const {
     <h2 class="mb-2 text-center text-3xl font-extrabold tracking-tight text-slate-900">{title}</h2>
     <p class="mb-8 text-center text-slate-500">{subtitle}</p>
 
-    <div id="ba" class="relative select-none overflow-hidden rounded-3xl border border-slate-200">
+    <div class="ba-root relative select-none overflow-hidden rounded-3xl border border-slate-200">
       <!-- После (фон) -->
-      <img src={after} alt="Узел после ремонта" class="block aspect-[16/9] w-full object-cover" draggable="false" />
+      <img src={after} alt="Узел после ремонта" width="1200" height="675" class="block aspect-[16/9] w-full object-cover" draggable="false" />
       <!-- До (обрезается по ширине) -->
-      <div id="ba-before" class="absolute inset-y-0 left-0 overflow-hidden" style="width: 50%">
-        <img
-          src={before}
-          alt="Узел до ремонта"
-          class:list={['aspect-[16/9] h-full max-w-none object-cover', demo && 'grayscale brightness-75']}
-          draggable="false"
-          id="ba-before-img"
-        />
+      <div class="ba-before absolute inset-y-0 left-0 overflow-hidden" style="width: 50%">
+        <img src={before} alt="Узел до ремонта" width="1200" height="675" class="ba-before-img aspect-[16/9] h-full max-w-none object-cover" draggable="false" />
       </div>
       <!-- Разделитель -->
-      <div id="ba-handle" class="absolute inset-y-0 w-1 bg-white shadow" style="left: 50%">
+      <div class="ba-handle absolute inset-y-0 w-1 bg-white shadow" style="left: 50%">
         <div class="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-slate-600 shadow-lg">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 8-4 4 4 4M15 8l4 4-4 4"/></svg>
         </div>
       </div>
       <span class="absolute left-3 top-3 rounded-lg bg-black/60 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">До</span>
       <span class="absolute right-3 top-3 rounded-lg bg-blue-600 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">После</span>
-      <input id="ba-range" type="range" min="0" max="100" value="50" aria-label="Сравнение до и после" class="absolute inset-0 h-full w-full cursor-ew-resize opacity-0" />
+      <input type="range" min="0" max="100" value="50" aria-label="Сравнение до и после" class="ba-range absolute inset-0 h-full w-full cursor-ew-resize opacity-0" />
     </div>
   </div>
 </section>
 
 <script>
-  document.querySelectorAll('#ba').forEach((wrap) => {
-    const before = wrap.querySelector('#ba-before');
-    const beforeImg = wrap.querySelector('#ba-before-img');
-    const handle = wrap.querySelector('#ba-handle');
-    const range = wrap.querySelector('#ba-range');
+  document.querySelectorAll('.ba-root').forEach((root) => {
+    const before = root.querySelector('.ba-before');
+    const beforeImg = root.querySelector('.ba-before-img');
+    const handle = root.querySelector('.ba-handle');
+    const range = root.querySelector('.ba-range');
 
     function syncImageWidth() {
-      beforeImg.style.width = wrap.offsetWidth + 'px';
+      beforeImg.style.width = root.offsetWidth + 'px';
     }
     function setPos(pct) {
       before.style.width = pct + '%';

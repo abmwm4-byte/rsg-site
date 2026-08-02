@@ -1,7 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /design-a/
-Disallow: /design-b/
-Disallow: /design-c/
 
 Sitemap: https://remontstarterov.by/sitemap-index.xml
