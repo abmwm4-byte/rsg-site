@@ -1,21 +1,22 @@
 ---
-// TODO(analytics): подставить реальные ID счётчиков перед запуском.
-// Метрика: создать счётчик на metrika.yandex.by → вставить номер вместо YM_ID.
-// GA4: создать ресурс в analytics.google.com → вставить ID вместо GA_ID.
-const YM_ID = '00000000'; // TODO(analytics)
-const GA_ID = 'G-XXXXXXXXXX'; // TODO(analytics)
-const enabled = !YM_ID.startsWith('0000') && !GA_ID.startsWith('G-XXXX');
+// Счётчики аналитики. Каждый включается независимо, как только подставлен реальный ID.
+const YM_ID = '62982700'; // Яндекс Метрика, Вебвизор включён
+const GA_ID = 'G-XXXXXXXXXX'; // TODO(analytics): GA4, когда будет создан ресурс
+const ymEnabled = !YM_ID.startsWith('0000');
+const gaEnabled = !GA_ID.startsWith('G-XXXX');
 ---
 
-{enabled && (
+{ymEnabled && (
+  <script is:inline define:vars={{ YM_ID }}>
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],
+    k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window,document,'script','https://mc.yandex.ru/metrika/tag.js','ym');
+    ym(YM_ID,'init',{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true});
+  </script>
+)}
+{gaEnabled && (
   <>
-    <script is:inline define:vars={{ YM_ID }}>
-      (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-      m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],
-      k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-      (window,document,'script','https://mc.yandex.ru/metrika/tag.js','ym');
-      ym(YM_ID,'init',{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true});
-    </script>
     <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
     <script is:inline define:vars={{ GA_ID }}>
       window.dataLayer = window.dataLayer || [];
