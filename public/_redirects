@@ -1,2 +1,3 @@
 # Cloudflare Pages: редиректы со старых Tilda-URL
 /inprocess / 301
+/sitemap.xml /sitemap-index.xml 301
