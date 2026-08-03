@@ -8,7 +8,7 @@ import { site } from '../data/site';
 const diagnostikaFaq = [
   {
     q: 'Сколько стоит диагностика?',
-    a: 'При последующем ремонте у нас — бесплатно. Отдельно — от 20 BYN, занимает 20–30 минут.', // TODO(прайс): уточнить цену отдельной диагностики
+    a: 'Бесплатно — и на стенде, и на автомобиле. После неё называем точную причину и цену ремонта до начала работ.',
   },
   {
     q: 'Нужно ли записываться?',
@@ -22,8 +22,8 @@ const diagnostikaFaq = [
 ---
 
 <SiteLayout
-  title="Диагностика стартеров и генераторов в Минске — от 20 BYN | RSG Group"
-  description="Диагностика стартера и генератора на стенде и на автомобиле в Минске. 20–30 минут, честный вердикт: ремонт или замена. Без записи, работаем без выходных 9:00–19:00."
+  title="Бесплатная диагностика стартеров и генераторов в Минске | RSG Group"
+  description="Бесплатная диагностика стартера и генератора на стенде и на автомобиле в Минске. Честный вердикт и цена до начала работ. Без записи, без выходных 9:00–19:00."
 >
   <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-6xl px-4 pb-12 pt-12">
@@ -65,8 +65,8 @@ const diagnostikaFaq = [
     <div class="mx-auto max-w-6xl px-4 py-16">
       <div class="rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center dark:border-slate-700 dark:bg-slate-800 md:p-12">
         <div class="text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-400">Диагностика</div>
-        <div class="mt-2 text-5xl font-extrabold text-slate-900 dark:text-white">от 20 BYN</div>
-        <p class="mx-auto mt-3 max-w-md text-slate-600 dark:text-slate-400">При ремонте у нас — <b class="text-blue-700 dark:text-blue-400">бесплатно</b>. 20–30 минут, без записи. Приезжайте в любой день: {site.hours}.</p>
+        <div class="mt-2 text-5xl font-extrabold text-slate-900 dark:text-white">Бесплатно</div>
+        <p class="mx-auto mt-3 max-w-md text-slate-600 dark:text-slate-400">И на стенде, и на автомобиле. После неё назовём точную цену ремонта — до начала работ. Без записи: {site.hours}.</p>
         <div class="mt-7 flex flex-wrap justify-center gap-3">
           <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">Позвонить</a>
           <MessengerButtons size="lg" />
