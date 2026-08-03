@@ -8,8 +8,7 @@ solution: 'Заменили диодный мост и щётки, провер�
 price: '140 BYN'
 time: 'в день обращения'
 date: 2026-07-25
-before: /images/alternator-parts.jpg
-after: /images/work-alternator.jpg
+photo: /images/alternator-parts.jpg
 ---
 
 Сначала проверили на машине: генератор выдавал 12,1 В вместо положенных 13,8–14,4 В —
