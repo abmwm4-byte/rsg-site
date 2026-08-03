@@ -8,8 +8,7 @@ solution: 'Заменили втягивающее реле и щётки, за�
 price: '90 BYN'
 time: '2 часа'
 date: 2026-07-20
-before: /images/workshop-hands.jpg
-after: /images/workshop-engine.jpg
+photo: /images/starter-parts.jpg
 ---
 
 Клиент приехал с классическим симптомом: ключ в положение «старт» — один громкий щелчок, и всё.
