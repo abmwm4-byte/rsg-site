@@ -8,7 +8,7 @@ import { site } from '../data/site';
 const diagnostikaFaq = [
   {
     q: 'Сколько стоит диагностика?',
-    a: 'От 20 BYN, занимает 20–30 минут. Если делаете ремонт у нас — условия по диагностике уточняйте у мастера.', // TODO(прайс)
+    a: 'При последующем ремонте у нас — бесплатно. Отдельно — от 20 BYN, занимает 20–30 минут.', // TODO(прайс): уточнить цену отдельной диагностики
   },
   {
     q: 'Нужно ли записываться?',
@@ -66,7 +66,7 @@ const diagnostikaFaq = [
       <div class="rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center dark:border-slate-700 dark:bg-slate-800 md:p-12">
         <div class="text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-400">Диагностика</div>
         <div class="mt-2 text-5xl font-extrabold text-slate-900 dark:text-white">от 20 BYN</div>
-        <p class="mx-auto mt-3 max-w-md text-slate-600 dark:text-slate-400">20–30 минут, без записи. Приезжайте в любой день: {site.hours}.</p>
+        <p class="mx-auto mt-3 max-w-md text-slate-600 dark:text-slate-400">При ремонте у нас — <b class="text-blue-700 dark:text-blue-400">бесплатно</b>. 20–30 минут, без записи. Приезжайте в любой день: {site.hours}.</p>
         <div class="mt-7 flex flex-wrap justify-center gap-3">
           <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">Позвонить</a>
           <MessengerButtons size="lg" />
