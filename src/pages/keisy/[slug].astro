@@ -60,7 +60,7 @@ const d = entry.data;
       </div>
 
       {d.photo && !d.before && (
-        <img src={d.photo} alt={d.title} loading="lazy" width="1200" height="675" class="mt-8 aspect-[16/9] w-full rounded-3xl border border-slate-200 object-cover" />
+        <img src={d.photo} alt={d.title} loading="lazy" class="mx-auto mt-8 block max-h-[560px] w-auto max-w-full rounded-3xl border border-slate-200 dark:border-slate-700" />
       )}
 
       <!-- История -->
