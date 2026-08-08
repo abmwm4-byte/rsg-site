@@ -1,4 +1,6 @@
 ---
+import Img from './Img.astro';
+
 // Реальные фото сервиса. По мере новых снимков — заменять/добавлять здесь.
 const photos = [
   { src: '/images/exterior.webp', alt: 'Вход в автосервис RSG Group — вывеска «Стартеры и генераторы»' },
@@ -18,12 +20,11 @@ const photos = [
   </div>
   <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
     {photos.map((p) => (
-      <img
+      <Img
         src={p.src}
         alt={p.alt}
-        loading="lazy"
-        width="1200"
-        height="900"
+        width={1200}
+        height={900}
         class="aspect-[4/3] w-full rounded-2xl border border-slate-200 object-cover dark:border-slate-700"
       />
     ))}

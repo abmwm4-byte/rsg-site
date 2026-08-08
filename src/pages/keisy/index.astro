@@ -4,6 +4,7 @@ import SiteLayout from '../../layouts/SiteLayout.astro';
 import MessengerButtons from '../../components/MessengerButtons.astro';
 import { site } from '../../data/site';
 import { withThumb } from '../../utils/thumb';
+import Img from '../../components/Img.astro';
 
 const cases = (await getCollection('cases')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 ---
@@ -27,7 +28,7 @@ const cases = (await getCollection('cases')).sort((a, b) => b.data.date.valueOf(
       {cases.map((entry) => (
         <a href={`/keisy/${entry.id}/`} class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-slate-700 dark:bg-slate-800">
           {(entry.data.after || entry.data.photo) && (
-            <img src={withThumb(entry.data.after ?? entry.data.photo)} alt={entry.data.title} loading="lazy" decoding="async" width="640" height="360" class="aspect-[16/9] w-full object-cover" />
+            <Img src={withThumb(entry.data.after ?? entry.data.photo)!} alt={entry.data.title} width={640} height={360} class="aspect-[16/9] w-full object-cover" />
           )}
           <div class="p-6">
             <div class="flex items-center gap-2">

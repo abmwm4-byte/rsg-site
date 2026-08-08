@@ -5,6 +5,7 @@ import BeforeAfter from '../../components/BeforeAfter.astro';
 import MessengerButtons from '../../components/MessengerButtons.astro';
 import { site } from '../../data/site';
 import { serviceByUnit } from '../../utils/thumb';
+import Img from '../../components/Img.astro';
 
 export async function getStaticPaths() {
   const cases = await getCollection('cases');
@@ -62,7 +63,7 @@ const service = serviceByUnit[d.unit];
       </div>
 
       {d.photo && !d.before && (
-        <img src={d.photo} alt={d.title} loading="lazy" decoding="async" class="mx-auto mt-8 block max-h-[560px] w-auto max-w-full rounded-3xl border border-slate-200 dark:border-slate-700" />
+        <Img src={d.photo} alt={d.title} class="mx-auto mt-8 block max-h-[560px] w-auto max-w-full rounded-3xl border border-slate-200 dark:border-slate-700" />
       )}
 
       <!-- История -->
@@ -95,6 +96,31 @@ const service = serviceByUnit[d.unit];
           <a href={service.href} class="font-semibold text-blue-600 underline decoration-blue-300 underline-offset-4 transition hover:text-blue-700 dark:text-blue-400">{service.label} →</a>
         </p>
       )}
+      <p class="mt-4">
+        <button type="button" id="share-case" class="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+          <span id="share-case-label">Поделиться кейсом</span>
+        </button>
+      </p>
     </div>
   </section>
 </SiteLayout>
+
+<script is:inline define:vars={{ shareTitle: d.title }}>
+  (() => {
+    const btn = document.getElementById('share-case');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      const data = { title: shareTitle + ' — RSG Group', url: location.href };
+      if (navigator.share) {
+        try { await navigator.share(data); } catch {}
+      } else {
+        try {
+          await navigator.clipboard.writeText(location.href);
+          const label = document.getElementById('share-case-label');
+          if (label) { label.textContent = 'Ссылка скопирована'; setTimeout(() => { label.textContent = 'Поделиться кейсом'; }, 2000); }
+        } catch {}
+      }
+    });
+  })();
+</script>

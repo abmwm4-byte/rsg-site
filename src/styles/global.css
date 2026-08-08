@@ -9,6 +9,26 @@
   contain-intrinsic-size: auto 500px;
 }
 
+/* Плавный переход между страницами (Chrome 126+, Safari 18+) */
+@view-transition {
+  navigation: auto;
+}
+
+/* Появление блоков при скролле (scroll-driven, без JS) */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
+}
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Inter self-hosted (variable, 400–800), вместо Google Fonts — быстрее и без внешних запросов */
 @font-face {
   font-family: 'Inter';

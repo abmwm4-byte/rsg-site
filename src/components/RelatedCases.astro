@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import { withThumb } from '../utils/thumb';
+import Img from './Img.astro';
 
 interface Props {
   unit: string;
@@ -28,7 +29,7 @@ const heading = title ?? `Недавние кейсы: ${unit.toLowerCase()}`;
       {cases.map((entry) => (
         <a href={`/keisy/${entry.id}/`} class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-slate-700 dark:bg-slate-800">
           {(entry.data.after || entry.data.photo) && (
-            <img src={withThumb(entry.data.after ?? entry.data.photo)} alt={entry.data.title} loading="lazy" decoding="async" width="640" height="360" class="aspect-[16/9] w-full object-cover" />
+            <Img src={withThumb(entry.data.after ?? entry.data.photo)!} alt={entry.data.title} width={640} height={360} class="aspect-[16/9] w-full object-cover" />
           )}
           <div class="p-5">
             <div class="text-xs text-slate-400 dark:text-slate-500">{entry.data.date.toLocaleDateString('ru-BY', { day: 'numeric', month: 'long', year: 'numeric' })}</div>

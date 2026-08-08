@@ -1,6 +1,8 @@
-// Генерирует превью *-thumb.webp (640px, q78) для всех фото в public/images.
-// Идемпотентно: создаёт только недостающие/устаревшие превью.
-// Новые фото добавляем в WebP — конвейер: sharp → .webp → превью создастся при билде.
+// Генерирует производные для фото в public/images:
+//   *-thumb.webp (640px, q78) — превью карточек
+//   *.avif (q55) — полноразмерный AVIF для <picture>
+// Идемпотентно: создаёт только недостающие/устаревшие файлы.
+// Новые фото добавляем в WebP — конвейер: sharp → .webp → производные при билде.
 import { readdirSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import sharp from 'sharp';
@@ -8,15 +10,22 @@ import sharp from 'sharp';
 const dir = 'public/images';
 const files = readdirSync(dir).filter((f) => /\.webp$/i.test(f) && !f.includes('-thumb'));
 
-let created = 0;
+let thumbs = 0, avifs = 0;
 for (const file of files) {
   const src = join(dir, file);
-  const out = join(dir, file.replace(/\.webp$/i, '-thumb.webp'));
-  if (existsSync(out) && statSync(out).mtimeMs >= statSync(src).mtimeMs) continue;
-  await sharp(src)
-    .resize(640, null, { withoutEnlargement: true })
-    .webp({ quality: 78 })
-    .toFile(out);
-  created++;
+  const mtime = statSync(src).mtimeMs;
+
+  const thumb = join(dir, file.replace(/\.webp$/i, '-thumb.webp'));
+  if (!existsSync(thumb) || statSync(thumb).mtimeMs < mtime) {
+    await sharp(src).resize(640, null, { withoutEnlargement: true }).webp({ quality: 78 }).toFile(thumb);
+    await sharp(src).resize(640, null, { withoutEnlargement: true }).avif({ quality: 50, effort: 4 }).toFile(thumb.replace(/\.webp$/, '.avif'));
+    thumbs++;
+  }
+
+  const avif = join(dir, file.replace(/\.webp$/i, '.avif'));
+  if (!existsSync(avif) || statSync(avif).mtimeMs < mtime) {
+    await sharp(src).avif({ quality: 55, effort: 4 }).toFile(avif);
+    avifs++;
+  }
 }
-console.log(`thumbs: создано ${created}, всего исходников ${files.length}`);
+console.log(`производные: ${thumbs} превью, ${avifs} avif (исходников ${files.length})`);

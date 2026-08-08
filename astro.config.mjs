@@ -9,17 +9,40 @@ import cloudflare from '@astrojs/cloudflare';
 
 import { satteri } from '@astrojs/markdown-satteri';
 
-// Lazy-загрузка для изображений в markdown-кейсах
-const lazyImages = {
+// Lazy-загрузка + AVIF-источник для изображений в markdown-кейсах
+const lazyImages = () => ({
   name: 'lazy-images',
   element: {
     filter: ['img'],
     visit(node, ctx) {
-      ctx.setProperty(node, 'loading', 'lazy');
-      ctx.setProperty(node, 'decoding', 'async');
+      const src = node.properties?.src;
+      if (typeof src === 'string' && src.startsWith('/images/') && src.endsWith('.webp')) {
+        ctx.replaceNode(node, {
+          type: 'element',
+          tagName: 'picture',
+          properties: {},
+          children: [
+            {
+              type: 'element',
+              tagName: 'source',
+              properties: { srcset: src.replace(/\.webp$/, '.avif'), type: 'image/avif' },
+              children: []
+            },
+            {
+              type: 'element',
+              tagName: 'img',
+              properties: { ...node.properties, loading: 'lazy', decoding: 'async' },
+              children: []
+            }
+          ]
+        });
+      } else {
+        ctx.setProperty(node, 'loading', 'lazy');
+        ctx.setProperty(node, 'decoding', 'async');
+      }
     }
   }
-};
+});
 
 // https://astro.build/config
 export default defineConfig({
