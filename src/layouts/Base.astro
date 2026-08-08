@@ -16,6 +16,11 @@ const canonical = new URL(Astro.url.pathname, 'https://remontstarterov.by');
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
+    <style>
+      /* Фон до загрузки основного CSS — убирает чёрную/белую вспышку */
+      html { background-color: #f8fafc; }
+      html.dark { background-color: #020617; }
+    </style>
     <script is:inline>
       // Тема: light | auto | dark (localStorage rsg-theme). Auto — по восходу/закату в Минске.
       (function () {
@@ -63,6 +68,8 @@ const canonical = new URL(Astro.url.pathname, 'https://remontstarterov.by');
     <meta property="og:image" content="https://remontstarterov.by/images/workshop-engine.jpg" />
     <meta name="theme-color" content="#2563eb" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://mc.yandex.ru" crossorigin />
+    <link rel="preconnect" href="https://www.googletagmanager.com" />
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-cyrillic.woff2" />
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-latin.woff2" />
   </head>
