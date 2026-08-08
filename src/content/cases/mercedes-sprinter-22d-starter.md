@@ -7,7 +7,7 @@ solution: 'Дефектовка: неисправность втягивающе
 price: '155 BYN'
 time: '1 час'
 date: 2026-08-08
-photo: /images/mercedes-sprinter-22d-1.jpg
+photo: /images/mercedes-sprinter-22d-1.webp
 ---
 
 Клиент привёз к нам стартер с Mercedes-Benz Sprinter 2.2 дизель:
@@ -17,7 +17,7 @@ photo: /images/mercedes-sprinter-22d-1.jpg
 Тот самый щелчок, который слышал клиент, — это и есть звук втягивающего
 реле: оно срабатывало, но дальше дело не шло.
 
-![Старое и новое втягивающее реле стартера Mercedes Sprinter 2.2](/images/mercedes-sprinter-22d-2.jpg)
+![Старое и новое втягивающее реле стартера Mercedes Sprinter 2.2](/images/mercedes-sprinter-22d-2.webp)
 
 Согласовали с клиентом цену и замену втягивающего реле и втулок.
 Через час стартер был готов.

@@ -7,7 +7,7 @@ solution: 'Дефектовка: замкнуло втягивающее рел�
 price: '—'
 time: 'Ремонт нецелесообразен'
 date: 2026-08-08
-photo: /images/volkswagen-jetta-2.jpg
+photo: /images/volkswagen-jetta-2.webp
 ---
 
 Клиент приехал на Volkswagen Jetta с жалобой на неисправность стартера.
@@ -16,15 +16,15 @@ photo: /images/volkswagen-jetta-2.jpg
 стартер после запуска оставался в зацеплении и постоянно крутился вместе
 с двигателем.
 
-![Стартер Volkswagen Jetta на дефектовке, заметны следы масла](/images/volkswagen-jetta-1.jpg)
+![Стартер Volkswagen Jetta на дефектовке, заметны следы масла](/images/volkswagen-jetta-1.webp)
 
 Такой режим работы выматывает узел целиком, поэтому чинить этот стартер
 нецелесообразно. Честно сказали об этом клиенту: договорились, что он
 привезёт б/у стартер — приведём его в порядок и поставим на машину.
 
-![Стартер Volkswagen Jetta, общий вид](/images/volkswagen-jetta-3.jpg)
+![Стартер Volkswagen Jetta, общий вид](/images/volkswagen-jetta-3.webp)
 
-![Снятый стартер Volkswagen Jetta с втягивающим реле](/images/volkswagen-jetta-4.jpg)
+![Снятый стартер Volkswagen Jetta с втягивающим реле](/images/volkswagen-jetta-4.webp)
 
 Не каждый узел выгодно ремонтировать — в таких случаях мы прямо говорим,
 какой вариант будет дешевле и надёжнее для клиента.

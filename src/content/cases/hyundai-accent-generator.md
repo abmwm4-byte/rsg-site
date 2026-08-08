@@ -7,7 +7,7 @@ solution: 'Заменили диодный мост, реле регулятор
 price: '460 BYN со снятием и установкой'
 time: '3 часа'
 date: 2026-08-03
-photo: /images/alternator-parts.jpg
+photo: /images/alternator-parts.webp
 ---
 
 Начали с проверки на автомобиле: генератор выдавал 12,1 В вместо положенных 13,8–14,4 В —

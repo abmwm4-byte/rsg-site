@@ -7,7 +7,7 @@ solution: 'Заменили втягивающее реле, щётки и вт�
 price: '190 BYN'
 time: '2 часа'
 date: 2026-08-03
-photo: /images/starter-parts.jpg
+photo: /images/starter-parts.webp
 ---
 
 Клиент приехал с классическим симптомом: ключ в положение «старт» — один громкий щелчок,
