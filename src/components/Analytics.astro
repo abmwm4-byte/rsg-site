@@ -8,23 +8,29 @@ const gaEnabled = !GA_ID.startsWith('G-XXXX');
 
 {ymEnabled && (
   <script is:inline define:vars={{ YM_ID }}>
-    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-    m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],
-    k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-    (window,document,'script','https://mc.yandex.ru/metrika/tag.js','ym');
-    ym(YM_ID,'init',{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true});
+    // Счётчик только на боевом домене (не на превью/тех. доменах)
+    if (location.hostname === 'remontstarterov.by') {
+      (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+      m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],
+      k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+      (window,document,'script','https://mc.yandex.ru/metrika/tag.js','ym');
+      ym(YM_ID,'init',{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true});
+    }
   </script>
 )}
 {gaEnabled && (
-  <>
-    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
-    <script is:inline define:vars={{ GA_ID }}>
+  <script is:inline define:vars={{ GA_ID }}>
+    if (location.hostname === 'remontstarterov.by') {
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+      document.head.appendChild(s);
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
+      window.gtag = function(){dataLayer.push(arguments);};
       gtag('js', new Date());
       gtag('config', GA_ID);
-    </script>
-  </>
+    }
+  </script>
 )}
 
 <!-- Цели: клики по звонкам и мессенджерам (data-goal на ссылках) -->
