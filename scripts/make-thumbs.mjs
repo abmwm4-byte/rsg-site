@@ -18,7 +18,11 @@ for (const file of files) {
   const thumb = join(dir, file.replace(/\.webp$/i, '-thumb.webp'));
   if (!existsSync(thumb) || statSync(thumb).mtimeMs < mtime) {
     await sharp(src).resize(640, null, { withoutEnlargement: true }).webp({ quality: 78 }).toFile(thumb);
-    await sharp(src).resize(640, null, { withoutEnlargement: true }).avif({ quality: 50, effort: 4 }).toFile(thumb.replace(/\.webp$/, '.avif'));
+    thumbs++;
+  }
+  const thumbAvif = thumb.replace(/\.webp$/, '.avif');
+  if (!existsSync(thumbAvif) || statSync(thumbAvif).mtimeMs < mtime) {
+    await sharp(src).resize(640, null, { withoutEnlargement: true }).avif({ quality: 50, effort: 4 }).toFile(thumbAvif);
     thumbs++;
   }
 
