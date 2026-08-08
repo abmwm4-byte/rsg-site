@@ -25,7 +25,4 @@ Disallow: /
 User-agent: meta-externalagent
 Disallow: /
 
-User-agent: *
-Allow: /
-
 Sitemap: https://remontstarterov.by/sitemap-index.xml
