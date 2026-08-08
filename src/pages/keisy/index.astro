@@ -3,11 +3,9 @@ import { getCollection } from 'astro:content';
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import MessengerButtons from '../../components/MessengerButtons.astro';
 import { site } from '../../data/site';
+import { withThumb } from '../../utils/thumb';
 
 const cases = (await getCollection('cases')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-// Превью *-thumb.jpg генерирует scripts/make-thumbs.mjs перед каждым билдом
-const withThumb = (src?: string) =>
-  src && /\.jpe?g$/i.test(src) ? src.replace(/\.jpe?g$/i, '-thumb.jpg') : src;
 ---
 
 <SiteLayout

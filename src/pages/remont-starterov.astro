@@ -4,6 +4,7 @@ import Faq from '../components/Faq.astro';
 import MessengerButtons from '../components/MessengerButtons.astro';
 import RouteButton from '../components/RouteButton.astro';
 import RegionBlock from '../components/RegionBlock.astro';
+import RelatedCases from '../components/RelatedCases.astro';
 import { site, starterSymptoms, starterFaq } from '../data/site';
 ---
 
@@ -66,6 +67,8 @@ import { site, starterSymptoms, starterFaq } from '../data/site';
       <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">Цены ориентировочные и указаны с учётом работы; запчасти при необходимости оплачиваются отдельно по факту. Переборка — разборка, дефектовка и сборка узла. Точную стоимость называем после бесплатной диагностики — до начала работ.</p>
     </div>
   </section>
+
+  <RelatedCases unit="Стартер" title="Недавние кейсы по стартерам" />
 
   <Faq items={starterFaq} title="Вопросы о ремонте стартеров" />
   <RegionBlock />

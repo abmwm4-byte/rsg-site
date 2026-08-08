@@ -1,0 +1,46 @@
+---
+import { getCollection } from 'astro:content';
+import { withThumb } from '../utils/thumb';
+
+interface Props {
+  unit: string;
+  title?: string;
+  limit?: number;
+}
+
+const { unit, title, limit = 3 } = Astro.props;
+
+const cases = (await getCollection('cases'))
+  .filter((c) => c.data.unit === unit)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, limit);
+
+const heading = title ?? `Недавние кейсы: ${unit.toLowerCase()}`;
+---
+
+{cases.length > 0 && (
+  <section class="mx-auto max-w-6xl px-4 py-16">
+    <div class="mb-8 flex items-end justify-between gap-4">
+      <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">{heading}</h2>
+      <a href="/keisy/" class="hidden shrink-0 text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 sm:block">Все кейсы →</a>
+    </div>
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {cases.map((entry) => (
+        <a href={`/keisy/${entry.id}/`} class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-slate-700 dark:bg-slate-800">
+          {(entry.data.after || entry.data.photo) && (
+            <img src={withThumb(entry.data.after ?? entry.data.photo)} alt={entry.data.title} loading="lazy" decoding="async" width="640" height="360" class="aspect-[16/9] w-full object-cover" />
+          )}
+          <div class="p-5">
+            <div class="text-xs text-slate-400 dark:text-slate-500">{entry.data.date.toLocaleDateString('ru-BY', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+            <h3 class="mt-2 font-bold leading-snug text-slate-900 group-hover:text-blue-600 dark:text-white">{entry.data.title}</h3>
+            <div class="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-sm dark:border-slate-700">
+              <span class="font-extrabold text-blue-700 dark:text-blue-400">{entry.data.price}</span>
+              <span class="text-slate-500">{entry.data.time}</span>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+    <a href="/keisy/" class="mt-6 inline-block text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 sm:hidden">Все кейсы →</a>
+  </section>
+)}
