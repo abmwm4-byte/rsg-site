@@ -4,7 +4,7 @@ import SiteLayout from '../../layouts/SiteLayout.astro';
 import BeforeAfter from '../../components/BeforeAfter.astro';
 import MessengerButtons from '../../components/MessengerButtons.astro';
 import { site } from '../../data/site';
-import { serviceByUnit } from '../../utils/thumb';
+import { serviceByUnit, withThumb } from '../../utils/thumb';
 import Img from '../../components/Img.astro';
 
 export async function getStaticPaths() {
@@ -16,12 +16,19 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 const d = entry.data;
 const service = serviceByUnit[d.unit];
+
+// Следующий кейс: сначала по тому же узлу, иначе просто соседний по дате
+const all = (await getCollection('cases')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const nextCase = all.find((c) => c.id !== entry.id && c.data.unit === d.unit)
+  ?? all[(all.findIndex((c) => c.id === entry.id) + 1) % all.length];
 ---
 
 <SiteLayout
   title={`${d.title} — кейс RSG Group, Минск`}
   description={`${d.car}. ${d.symptom} Работы: ${d.solution} Стоимость: ${d.price}, срок: ${d.time}. Гарантия 3 месяца.`}
 >
+  <!-- Полоска прогресса чтения -->
+  <div id="read-progress" class="fixed left-0 top-0 z-[60] h-0.5 w-0 bg-blue-600 dark:bg-blue-400"></div>
   <article class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-3xl px-4 pb-16 pt-12">
       <nav class="mb-4 text-sm text-slate-500 dark:text-slate-400"><a href="/" class="hover:text-blue-600">Главная</a> / <a href="/keisy/" class="hover:text-blue-600">Кейсы</a> / <span class="text-slate-700 dark:text-slate-300">{d.car}</span></nav>
@@ -104,7 +111,41 @@ const service = serviceByUnit[d.unit];
       </p>
     </div>
   </section>
+
+  {nextCase && (
+    <section class="mx-auto max-w-3xl px-4 pb-16">
+      <a href={`/keisy/${nextCase.id}/`} class="group flex items-center gap-4 overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-700 dark:bg-slate-800">
+        {(nextCase.data.after || nextCase.data.photo) && (
+          <Img src={withThumb(nextCase.data.after ?? nextCase.data.photo)!} alt={nextCase.data.title} width={160} height={90} class="aspect-video w-28 shrink-0 rounded-2xl object-cover sm:w-36" />
+        )}
+        <span class="min-w-0">
+          <span class="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Следующий кейс</span>
+          <span class="mt-1 block truncate font-bold text-slate-900 group-hover:text-blue-600 dark:text-white">{nextCase.data.title}</span>
+          <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">{nextCase.data.price} · {nextCase.data.time}</span>
+        </span>
+        <span class="ml-auto shrink-0 text-xl font-bold text-blue-600 dark:text-blue-400">→</span>
+      </a>
+    </section>
+  )}
 </SiteLayout>
+
+<script is:inline>
+  // Полоска прогресса чтения
+  (() => {
+    const bar = document.getElementById('read-progress');
+    if (!bar) return;
+    let ticking = false;
+    const update = () => {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      bar.style.width = (max > 0 ? Math.min(100, (scrollY / max) * 100) : 0) + '%';
+      ticking = false;
+    };
+    addEventListener('scroll', () => {
+      if (!ticking) { requestAnimationFrame(update); ticking = true; }
+    }, { passive: true });
+    update();
+  })();
+</script>
 
 <script is:inline define:vars={{ shareTitle: d.title }}>
   (() => {
