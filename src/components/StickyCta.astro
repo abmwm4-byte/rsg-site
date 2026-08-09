@@ -38,8 +38,15 @@ const chip = 'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl tex
 <!-- Шторка мессенджеров -->
 <div id="msg-sheet-overlay" class="fixed inset-0 z-[60] hidden bg-slate-900/50 opacity-0 transition-opacity duration-200 md:hidden"></div>
 <div id="msg-sheet" class="fixed bottom-0 left-0 right-0 z-[70] hidden translate-y-full rounded-t-3xl bg-white p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] transition-transform duration-300 dark:bg-slate-900 md:hidden">
-  <div class="mx-auto mb-3 h-1.5 w-11 rounded-full bg-slate-200 dark:bg-slate-700"></div>
-  <div class="px-1 text-lg font-extrabold text-slate-900 dark:text-white">Написать нам</div>
+  <div id="msg-sheet-drag" class="-m-2 cursor-grab touch-none p-2 pb-0">
+    <div class="mx-auto mb-3 h-1.5 w-11 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+    <div class="flex items-center justify-between px-1">
+      <div class="text-lg font-extrabold text-slate-900 dark:text-white">Написать нам</div>
+      <button type="button" id="close-msg-sheet" aria-label="Закрыть" class="-mr-1 rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </div>
   <div id="msg-status" class="mt-1 flex items-center gap-2 px-1 pb-4 text-sm font-semibold text-emerald-600 dark:text-emerald-400"></div>
   <div class="flex flex-col gap-2.5">
     {tg && (
@@ -96,14 +103,41 @@ const chip = 'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl tex
         sheet.classList.remove('translate-y-full');
         overlay.classList.remove('opacity-0');
       });
+      try { history.pushState({ msgSheet: true }, ''); pushed = true; } catch {}
     };
-    const closeSheet = () => {
+    let pushed = false;
+    const closeSheet = (fromPop) => {
       sheet.classList.add('translate-y-full');
       overlay.classList.add('opacity-0');
       setTimeout(() => { sheet.classList.add('hidden'); overlay.classList.add('hidden'); }, 300);
+      if (pushed && !fromPop) { pushed = false; history.back(); }
     };
     openBtn.addEventListener('click', openSheet);
-    overlay.addEventListener('click', closeSheet);
+    overlay.addEventListener('click', () => closeSheet());
+    document.getElementById('close-msg-sheet')?.addEventListener('click', () => closeSheet());
+    // Кнопка «назад» на Android закрывает шторку
+    addEventListener('popstate', () => { if (pushed) { pushed = false; closeSheet(true); } });
+
+    // Свайп вниз за верх шторки
+    const drag = document.getElementById('msg-sheet-drag');
+    if (drag) {
+      let startY = 0, dy = 0, dragging = false;
+      drag.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY; dy = 0; dragging = true;
+        sheet.style.transition = 'none';
+      }, { passive: true });
+      drag.addEventListener('touchmove', (e) => {
+        if (!dragging) return;
+        dy = Math.max(0, e.touches[0].clientY - startY);
+        sheet.style.transform = 'translateY(' + dy + 'px)';
+      }, { passive: true });
+      drag.addEventListener('touchend', () => {
+        dragging = false;
+        sheet.style.transition = '';
+        sheet.style.transform = '';
+        if (dy > 80) closeSheet();
+      });
+    }
   })();
 </script>
 
