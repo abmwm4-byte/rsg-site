@@ -59,4 +59,13 @@ const schema = {
     syncMaps();
     new MutationObserver(syncMaps).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
   </script>
+
+  <script is:inline>
+    // Виброотклик на кнопках действий (Android; iOS Safari не поддерживает — молча пропускает)
+    document.addEventListener('pointerdown', (e) => {
+      if (!navigator.vibrate) return;
+      const el = e.target.closest('[data-goal], #open-msg-sheet, #share-case, #msg-sheet a, .theme-toggle button');
+      if (el) navigator.vibrate(10);
+    }, { passive: true });
+  </script>
 </Base>
