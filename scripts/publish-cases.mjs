@@ -22,9 +22,14 @@ const slugify = (s) => s.toLowerCase().split('').map((ch) => TRANSLIT[ch] ?? ch)
 const res = await fetch(API, { headers: { 'x-token': TOKEN } });
 if (!res.ok) { console.error('API:', res.status); process.exit(1); }
 const { drafts } = await res.json();
-if (!drafts?.length) { console.log('черновиков нет'); process.exit(0); }
+// В расписание попадают только проверенные вручную (approved) черновики
+const approved = (drafts ?? []).filter((d) => d.approved);
+if (!approved.length) {
+  console.log(`проверенных черновиков нет (всего в очереди: ${drafts?.length ?? 0}, ждут проверки)`);
+  process.exit(0);
+}
 
-const queue = publishAll ? drafts : [drafts[0]]; // drafts отсортированы по id — публикуем самый старый
+const queue = publishAll ? approved : [approved[0]]; // отсортированы по id — публикуем самый старый
 const published = [];
 for (const d of queue) {
   let base = slugify(d.car.split(/[,(]/)[0].trim()) + '-' + (d.unit === 'Стартер' ? 'starter' : 'generator');

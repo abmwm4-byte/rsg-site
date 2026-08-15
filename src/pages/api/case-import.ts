@@ -15,7 +15,8 @@ export const POST: APIRoute = async ({ request }) => {
   const kv = (env as { SESSION?: KVNamespace }).SESSION;
   if (!kv) return new Response('no kv', { status: 500 });
 
-  // Ключ по id черновика в CRM — повторная отправка перезаписывает
-  await kv.put(`case-draft:${draft.id}`, JSON.stringify(draft));
+  // Ключ по id черновика в CRM — повторная отправка перезаписывает.
+  // approved: false — в расписание попадают только проверенные вручную
+  await kv.put(`case-draft:${draft.id}`, JSON.stringify({ ...draft, approved: false }));
   return Response.json({ ok: true });
 };
