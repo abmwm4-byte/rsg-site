@@ -1,13 +1,19 @@
 // Публикация черновиков кейсов из CRM на сайт.
-// Читает /api/case-drafts (токен из .env.case-token или аргумента), для каждого
-// черновика: сохраняет фото (base64 → webp в public/images), пишет .md в
-// src/content/cases, помечает опубликованным. Дальше — build/commit/deploy.
-// Запуск: node scripts/publish-cases.mjs
-import { readFileSync, writeFileSync } from 'node:fs';
+// Читает /api/case-drafts (токен из .env.case-token или аргумента), публикует
+// ОДИН самый старый черновик (или N через --all): фото base64 → webp в
+// public/images, .md в src/content/cases, помечает опубликованным.
+// Запуск вручную: node scripts/publish-cases.mjs [--all]
+// По расписанию: GitHub Action .github/workflows/publish-case.yml (пн/чт).
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 
-const TOKEN = process.argv[2] ?? readFileSync(new URL('../.env.case-token', import.meta.url), 'utf8').trim();
+const TOKEN = process.env.CASE_IMPORT_TOKEN
+  ?? (existsSync(new URL('../.env.case-token', import.meta.url))
+    ? readFileSync(new URL('../.env.case-token', import.meta.url), 'utf8').trim()
+    : null);
+if (!TOKEN) { console.error('нет токена (CASE_IMPORT_TOKEN или .env.case-token)'); process.exit(1); }
 const API = 'https://remontstarterov.by/api/case-drafts';
+const publishAll = process.argv.includes('--all');
 
 const TRANSLIT = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'c', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya' };
 const slugify = (s) => s.toLowerCase().split('').map((ch) => TRANSLIT[ch] ?? ch).join('')
@@ -18,9 +24,12 @@ if (!res.ok) { console.error('API:', res.status); process.exit(1); }
 const { drafts } = await res.json();
 if (!drafts?.length) { console.log('черновиков нет'); process.exit(0); }
 
+const queue = publishAll ? drafts : [drafts[0]]; // drafts отсортированы по id — публикуем самый старый
 const published = [];
-for (const d of drafts) {
-  const base = slugify(d.car.split(/[,(]/)[0].trim()) + '-' + (d.unit === 'Стартер' ? 'starter' : 'generator');
+for (const d of queue) {
+  let base = slugify(d.car.split(/[,(]/)[0].trim()) + '-' + (d.unit === 'Стартер' ? 'starter' : 'generator');
+  // Если такой кейс уже есть (та же машина) — добавляем суффикс -2, -3...
+  for (let n = 2; existsSync(`src/content/cases/${base}.md`); n++) base = base.replace(/-\d+$/, '') + '-' + n;
   const imgBase = base.replace(/-generator$/, '').replace(/-starter$/, '');
 
   // Фото: base64 data-url → webp файлы
