@@ -39,15 +39,35 @@ const brands = [...brandCounts.entries()].sort((a, b) => b[1].count - a[1].count
     <UnitTabs active="all" counts={{ all: cases.length, startery: cases.filter((c) => c.data.unit === 'Стартер').length, generatory: cases.filter((c) => c.data.unit === 'Генератор').length }} />
     <div>
       <div class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Кейсы по маркам авто</div>
-      <div class="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-wrap">
-        {brands.map(([slug, b]) => (
-          <a href={`/keisy/marki/${slug}/`} class="shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">
+      <div class="flex flex-wrap gap-2" id="brand-chips">
+        {brands.map(([slug, b], i) => (
+          <a href={`/keisy/marki/${slug}/`} data-extra={i >= 6 ? '1' : undefined} class={`${i >= 6 ? 'hidden ' : ''}whitespace-nowrap rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400`}>
             {b.name} <span class="text-slate-400 dark:text-slate-500">{b.count}</span>
           </a>
         ))}
+        {brands.length > 6 && (
+          <button type="button" id="brands-more" class="whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1.5 text-[13px] font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900">
+            Ещё {brands.length - 6} ▾
+          </button>
+        )}
       </div>
     </div>
   </section>
+
+  <script is:inline>
+    // Сворачиваем длинный список марок: первые 6 + кнопка «Ещё»
+    (() => {
+      const btn = document.getElementById('brands-more');
+      if (!btn) return;
+      let open = false;
+      const label = btn.textContent;
+      btn.addEventListener('click', () => {
+        open = !open;
+        document.querySelectorAll('#brand-chips [data-extra]').forEach((el) => el.classList.toggle('hidden', !open));
+        btn.textContent = open ? 'Скрыть ▴' : label;
+      });
+    })();
+  </script>
 
   <section class="mx-auto max-w-6xl px-4 py-16">
     <div class="grid gap-5 md:grid-cols-2">

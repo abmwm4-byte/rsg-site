@@ -57,13 +57,18 @@ const breadcrumbSchema = {
   <section class="mx-auto max-w-6xl px-4 py-16">
     <div class="mb-6">
       <div class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Фильтр по марке</div>
-      <div class="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-wrap" id="brand-filters">
-        <button type="button" data-brand="all" class="filter-chip shrink-0 whitespace-nowrap rounded-full bg-blue-600 px-3.5 py-1.5 text-[13px] font-semibold text-white transition">Все марки</button>
-        {unitBrands.map(([slug, b]) => (
-          <button type="button" data-brand={slug} class="filter-chip shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">
+      <div class="flex flex-wrap gap-2" id="brand-filters">
+        <button type="button" data-brand="all" class="filter-chip whitespace-nowrap rounded-full bg-blue-600 px-3.5 py-1.5 text-[13px] font-semibold text-white transition">Все марки</button>
+        {unitBrands.map(([slug, b], i) => (
+          <button type="button" data-brand={slug} data-extra={i >= 5 ? '1' : undefined} class={`filter-chip ${i >= 5 ? 'hidden ' : ''}whitespace-nowrap rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400`}>
             {b.name} <span class="text-slate-400 dark:text-slate-500">{b.count}</span>
           </button>
         ))}
+        {unitBrands.length > 5 && (
+          <button type="button" id="brands-more" class="whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1.5 text-[13px] font-semibold text-blue-700 transition hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900">
+            Ещё {unitBrands.length - 5} ▾
+          </button>
+        )}
       </div>
     </div>
     <div class="grid gap-5 md:grid-cols-2" id="cases-grid">
@@ -106,8 +111,18 @@ const breadcrumbSchema = {
 </SiteLayout>
 
 <script is:inline>
-  // Фильтр кейсов по марке (клиентский, без перезагрузки)
+  // Фильтр кейсов по марке (клиентский, без перезагрузки) + сворачивание списка
   (() => {
+    const more = document.getElementById('brands-more');
+    if (more) {
+      let open = false;
+      const label = more.textContent;
+      more.addEventListener('click', () => {
+        open = !open;
+        document.querySelectorAll('#brand-filters [data-extra]').forEach((el) => el.classList.toggle('hidden', !open));
+        more.textContent = open ? 'Скрыть ▴' : label;
+      });
+    }
     const chips = document.querySelectorAll('#brand-filters .filter-chip');
     const cards = document.querySelectorAll('#cases-grid > a');
     const active = 'shrink-0 whitespace-nowrap rounded-full bg-blue-600 px-3.5 py-1.5 text-[13px] font-semibold text-white transition';
