@@ -7,6 +7,11 @@ const reviewsSchema = {
   '@type': 'AutoRepair',
   name: site.legalName,
   url: site.url,
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: site.rating.value,
+    reviewCount: site.rating.reviewsCount,
+  },
   review: reviews.map((r) => ({
     '@type': 'Review',
     author: { '@type': 'Person', name: r.name },
