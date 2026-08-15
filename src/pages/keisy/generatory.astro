@@ -4,11 +4,22 @@ import SiteLayout from '../../layouts/SiteLayout.astro';
 import MessengerButtons from '../../components/MessengerButtons.astro';
 import { site } from '../../data/site';
 import { withThumb } from '../../utils/thumb';
+import { brandFromCar } from '../../utils/brand';
 import Img from '../../components/Img.astro';
 
 const cases = (await getCollection('cases'))
   .filter((c) => c.data.unit === 'Генератор')
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+// Марки этого узла — для фильтра
+const brandCounts = new Map<string, { name: string; count: number }>();
+for (const c of cases) {
+  const b = brandFromCar(c.data.car);
+  if (!b) continue;
+  const cur = brandCounts.get(b.slug);
+  brandCounts.set(b.slug, { name: b.name, count: (cur?.count ?? 0) + 1 });
+}
+const unitBrands = [...brandCounts.entries()].sort((a, b) => b[1].count - a[1].count);
 
 const breadcrumbSchema = {
   '@context': 'https://schema.org',
@@ -34,7 +45,8 @@ const breadcrumbSchema = {
       <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
         Щётки, подшипники, реле-регуляторы, диодные мосты — реальные ремонты с ценами и сроками.
       </p>
-      <div class="mt-6 flex gap-2 text-sm">
+      <div class="mt-6 flex flex-wrap gap-2 text-sm">
+        <a href="/keisy/" class="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">← Все кейсы</a>
         <span class="rounded-full bg-blue-600 px-4 py-2 font-semibold text-white">Генераторы · {cases.length}</span>
         <a href="/keisy/startery/" class="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">Стартеры →</a>
       </div>
@@ -42,9 +54,17 @@ const breadcrumbSchema = {
   </section>
 
   <section class="mx-auto max-w-6xl px-4 py-16">
-    <div class="grid gap-5 md:grid-cols-2">
+    <div class="mb-6 flex flex-wrap gap-2 text-sm" id="brand-filters">
+      <button type="button" data-brand="all" class="filter-chip rounded-full bg-blue-600 px-4 py-2 font-semibold text-white transition">Все марки</button>
+      {unitBrands.map(([slug, b]) => (
+        <button type="button" data-brand={slug} class="filter-chip rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">
+          {b.name} <span class="text-slate-400 dark:text-slate-500">{b.count}</span>
+        </button>
+      ))}
+    </div>
+    <div class="grid gap-5 md:grid-cols-2" id="cases-grid">
       {cases.map((entry) => (
-        <a href={`/keisy/${entry.id}/`} class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-slate-700 dark:bg-slate-800">
+        <a href={`/keisy/${entry.id}/`} data-brand={brandFromCar(entry.data.car)?.slug ?? ''} class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-slate-700 dark:bg-slate-800">
           {(entry.data.after || entry.data.photo) && (
             <Img src={withThumb(entry.data.after ?? entry.data.photo)!} alt={entry.data.title} width={640} height={360} class="aspect-[16/9] w-full object-cover" />
           )}
@@ -75,8 +95,27 @@ const breadcrumbSchema = {
         <MessengerButtons size="lg" />
       </div>
       <p class="mt-6 text-slate-600 dark:text-slate-400">
-        <a href="/remont-starterov/" class="font-semibold text-blue-600 underline decoration-blue-300 underline-offset-4 transition hover:text-blue-700 dark:text-blue-400">Ремонт стартеров — цены и условия →</a>
+        <a href="/remont-generatorov/" class="font-semibold text-blue-600 underline decoration-blue-300 underline-offset-4 transition hover:text-blue-700 dark:text-blue-400">Ремонт генераторов — цены и условия →</a>
       </p>
     </div>
   </section>
 </SiteLayout>
+
+<script is:inline>
+  // Фильтр кейсов по марке (клиентский, без перезагрузки)
+  (() => {
+    const chips = document.querySelectorAll('#brand-filters .filter-chip');
+    const cards = document.querySelectorAll('#cases-grid > a');
+    const active = 'rounded-full bg-blue-600 px-4 py-2 font-semibold text-white transition';
+    const idle = 'filter-chip rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400';
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const brand = chip.dataset.brand;
+        chips.forEach((c) => { c.className = c === chip ? active : idle; });
+        cards.forEach((card) => {
+          card.style.display = brand === 'all' || card.dataset.brand === brand ? '' : 'none';
+        });
+      });
+    });
+  })();
+</script>
