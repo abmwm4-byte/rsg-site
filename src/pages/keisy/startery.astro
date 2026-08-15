@@ -5,11 +5,14 @@ import MessengerButtons from '../../components/MessengerButtons.astro';
 import { site } from '../../data/site';
 import { withThumb } from '../../utils/thumb';
 import { brandFromCar } from '../../utils/brand';
+import UnitTabs from '../../components/UnitTabs.astro';
 import Img from '../../components/Img.astro';
 
-const cases = (await getCollection('cases'))
+const all = await getCollection('cases');
+const cases = all
   .filter((c) => c.data.unit === 'Стартер')
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const generatoryCount = all.filter((c) => c.data.unit === 'Генератор').length;
 
 // Марки этого узла — для фильтра
 const brandCounts = new Map<string, { name: string; count: number }>();
@@ -45,22 +48,23 @@ const breadcrumbSchema = {
       <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
         Щётки, бендиксы, втягивающие реле, втулки — реальные ремонты с ценами и сроками.
       </p>
-      <div class="mt-6 flex flex-wrap gap-2 text-sm">
-        <a href="/keisy/" class="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">← Все кейсы</a>
-        <span class="rounded-full bg-blue-600 px-4 py-2 font-semibold text-white">Стартеры · {cases.length}</span>
-        <a href="/keisy/generatory/" class="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">Генераторы →</a>
+      <div class="mt-6">
+        <UnitTabs active="startery" counts={{ all: all.length, startery: cases.length, generatory: generatoryCount }} />
       </div>
     </div>
   </section>
 
   <section class="mx-auto max-w-6xl px-4 py-16">
-    <div class="mb-6 flex flex-wrap gap-2 text-sm" id="brand-filters">
-      <button type="button" data-brand="all" class="filter-chip rounded-full bg-blue-600 px-4 py-2 font-semibold text-white transition">Все марки</button>
-      {unitBrands.map(([slug, b]) => (
-        <button type="button" data-brand={slug} class="filter-chip rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">
-          {b.name} <span class="text-slate-400 dark:text-slate-500">{b.count}</span>
-        </button>
-      ))}
+    <div class="mb-6">
+      <div class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Фильтр по марке</div>
+      <div class="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-wrap" id="brand-filters">
+        <button type="button" data-brand="all" class="filter-chip shrink-0 whitespace-nowrap rounded-full bg-blue-600 px-3.5 py-1.5 text-[13px] font-semibold text-white transition">Все марки</button>
+        {unitBrands.map(([slug, b]) => (
+          <button type="button" data-brand={slug} class="filter-chip shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">
+            {b.name} <span class="text-slate-400 dark:text-slate-500">{b.count}</span>
+          </button>
+        ))}
+      </div>
     </div>
     <div class="grid gap-5 md:grid-cols-2" id="cases-grid">
       {cases.map((entry) => (
@@ -106,8 +110,8 @@ const breadcrumbSchema = {
   (() => {
     const chips = document.querySelectorAll('#brand-filters .filter-chip');
     const cards = document.querySelectorAll('#cases-grid > a');
-    const active = 'rounded-full bg-blue-600 px-4 py-2 font-semibold text-white transition';
-    const idle = 'filter-chip rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400';
+    const active = 'shrink-0 whitespace-nowrap rounded-full bg-blue-600 px-3.5 py-1.5 text-[13px] font-semibold text-white transition';
+    const idle = 'filter-chip shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400';
     chips.forEach((chip) => {
       chip.addEventListener('click', () => {
         const brand = chip.dataset.brand;
