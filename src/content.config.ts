@@ -11,6 +11,7 @@ const cases = defineCollection({
     unit: z.enum(['Стартер', 'Генератор']),
     symptom: z.string(),        // симптом со слов клиента
     solution: z.string(),       // что сделали (работы и запчасти)
+    works: z.array(z.string()).optional(), // список работ чек-листом в блоке «Что сделали»
     price: z.string(),          // "90 BYN"
     time: z.string(),           // "2 часа"
     date: z.date(),
