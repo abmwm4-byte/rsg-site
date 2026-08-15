@@ -4,9 +4,20 @@ import SiteLayout from '../../layouts/SiteLayout.astro';
 import MessengerButtons from '../../components/MessengerButtons.astro';
 import { site } from '../../data/site';
 import { withThumb } from '../../utils/thumb';
+import { brandFromCar } from '../../utils/brand';
 import Img from '../../components/Img.astro';
 
 const cases = (await getCollection('cases')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+// Марки авто из кейсов (для чипсов-фильтров на посадочные страницы)
+const brandCounts = new Map<string, { name: string; count: number }>();
+for (const c of cases) {
+  const b = brandFromCar(c.data.car);
+  if (!b) continue;
+  const cur = brandCounts.get(b.slug);
+  brandCounts.set(b.slug, { name: b.name, count: (cur?.count ?? 0) + 1 });
+}
+const brands = [...brandCounts.entries()].sort((a, b) => b[1].count - a[1].count);
 ---
 
 <SiteLayout
@@ -20,6 +31,16 @@ const cases = (await getCollection('cases')).sort((a, b) => b.data.date.valueOf(
       <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
         Реальные ремонты: с чем приехали, что оказалось, что сделали и сколько это стоило.
       </p>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 pt-10">
+    <div class="flex flex-wrap gap-2">
+      {brands.map(([slug, b]) => (
+        <a href={`/keisy/marki/${slug}/`} class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">
+          {b.name} <span class="text-slate-400 dark:text-slate-500">{b.count}</span>
+        </a>
+      ))}
     </div>
   </section>
 
