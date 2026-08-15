@@ -30,6 +30,32 @@ import { site, nav } from '../data/site';
     </div>
   </div>
   <div class="border-t border-slate-100 dark:border-slate-800">
-    <p class="mx-auto max-w-6xl px-4 py-4 text-xs text-slate-500 dark:text-slate-400">© 2010–2026 {site.legalName}. УНП: {site.unp}. Все права защищены.</p>
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-slate-500 dark:text-slate-400">
+      <p>© 2010–2026 {site.legalName}. УНП: {site.unp}. Все права защищены.</p>
+      <p id="online-counter" class="hidden items-center gap-1.5">
+        <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500"></span>
+        <span>Сейчас на сайте: <b id="online-count">—</b></span>
+      </p>
+    </div>
   </div>
 </footer>
+
+<script is:inline>
+  // Счётчик онлайна: опрашиваем /api/online, обновляем каждые 60 сек
+  (() => {
+    const box = document.getElementById('online-counter');
+    const num = document.getElementById('online-count');
+    if (!box || !num) return;
+    const tick = async () => {
+      try {
+        const r = await fetch('/api/online');
+        const d = await r.json();
+        num.textContent = d.online;
+        box.classList.remove('hidden');
+        box.classList.add('flex');
+      } catch {}
+    };
+    tick();
+    setInterval(tick, 60000);
+  })();
+</script>
