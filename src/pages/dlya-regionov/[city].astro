@@ -1,0 +1,97 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import MessengerButtons from '../../components/MessengerButtons.astro';
+import RouteButton from '../../components/RouteButton.astro';
+import Faq from '../../components/Faq.astro';
+import { site } from '../../data/site';
+
+export function getStaticPaths() {
+  return [
+    { params: { city: 'brest' }, props: { cityName: 'Бресте', cityGen: 'Бреста', cityNom: 'Брест' } },
+    { params: { city: 'grodno' }, props: { cityName: 'Гродно', cityGen: 'Гродно', cityNom: 'Гродно' } },
+    { params: { city: 'vitebsk' }, props: { cityName: 'Витебске', cityGen: 'Витебска', cityNom: 'Витебск' } },
+    { params: { city: 'gomel' }, props: { cityName: 'Гомеле', cityGen: 'Гомеля', cityNom: 'Гомель' } },
+    { params: { city: 'mogilev' }, props: { cityName: 'Могилёве', cityGen: 'Могилёва', cityNom: 'Могилёв' } },
+  ];
+}
+
+const { city } = Astro.params;
+const { cityName, cityGen, cityNom } = Astro.props;
+
+const regionSteps = [
+  { title: 'Свяжитесь с нами', text: `Позвоните или напишите в мессенджер из ${cityGen}. Опишите симптомы — подскажем, стоит ли отправлять узел.` },
+  { title: 'Снимите узел и упакуйте', text: 'Снимите стартер или генератор, плотно упакуйте в коробку. Вложите записку с телефоном и описанием проблемы.' },
+  { title: 'Отправьте Европочтой', text: 'До отделения: ' + site.europochta.branch + '. Получатель — ' + site.legalName + ', ' + site.phones[0].number + '. Пришлите нам номер накладной. Доставку оплачиваем мы.' },
+  { title: 'Диагностика и согласование', text: 'Забираем узел из отделения, проверяем на стенде, звоним вам и называем точную цену. Работы начинаем только после вашего согласия.' },
+  { title: 'Оплата и возврат', text: `Оплата переводом после согласования. Отправляем отремонтированный узел обратно в ${cityNom} Европочтой — снова за наш счёт.` },
+];
+
+const regionFaq = [
+  {
+    q: `Сколько времени занимает ремонт по почте из ${cityGen}?`,
+    a: 'Диагностика — в день получения узла. Типовой ремонт — 1–2 дня, плюс доставка Европочтой в обе стороны. Обычно весь цикл занимает 3–5 дней.',
+  },
+  {
+    q: 'Кто оплачивает доставку?',
+    a: 'Мы. Доставка Европочтой в обе стороны — за наш счёт, вы оплачиваете только сам ремонт.',
+  },
+  {
+    q: 'Что делать, если узел окажется неремонтопригодным?',
+    a: 'Скажем об этом честно после диагностики и предложим варианты: возврат узла или замена на восстановленный/новый.',
+  },
+  {
+    q: 'Даёте ли гарантию при ремонте по почте?',
+    a: 'Да, условия те же, что и при личном визите: официальная гарантия 3 месяца на работы и запчасти.',
+  },
+];
+---
+
+<SiteLayout
+  title={`Ремонт стартеров и генераторов в ${cityName} по почте — Европочта | RSG Group`}
+  description={`Сломался стартер или генератор в ${cityName}? Отправьте нам Европочтой за наш счет! Диагностика в день получения, ремонт 1–2 дня, официальная гарантия 3 месяца.`}
+>
+  <section class="bg-white dark:bg-slate-900">
+    <div class="mx-auto max-w-4xl px-4 py-16 text-center md:py-24">
+      <p class="mb-4 inline-block rounded-full bg-blue-50 px-4 py-1.5 text-sm font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">Работаем со всей Беларусью</p>
+      <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
+        Ремонт стартеров и генераторов в {cityName} <br class="hidden sm:block" />
+        <span class="text-blue-600">с бесплатной доставкой</span>
+      </h1>
+      <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
+        Нет хорошего сервиса в {cityName}? Отправьте снятый стартер или генератор нам в Минск Европочтой. Мы оплатим пересылку в обе стороны, починим за 1-2 дня и дадим официальную гарантию.
+      </p>
+      <div class="mt-10 flex flex-wrap justify-center gap-4">
+        <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">Позвонить</a>
+        <MessengerButtons size="lg" />
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-slate-50 dark:bg-slate-800/50">
+    <div class="mx-auto max-w-6xl px-4 py-16">
+      <h2 class="text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Как отправить узел из {cityGen}</h2>
+      <div class="mx-auto mt-12 max-w-3xl space-y-6">
+        {regionSteps.map((step, i) => (
+          <div class="relative flex gap-6 rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-800">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 font-bold text-blue-600 dark:bg-blue-900/50 dark:text-blue-400">
+              {i + 1}
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-slate-900 dark:text-white">{step.title}</h3>
+              <p class="mt-2 leading-relaxed text-slate-600 dark:text-slate-400">{step.text}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-white dark:bg-slate-900">
+    <div class="mx-auto max-w-6xl px-4 py-16">
+      <h2 class="text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Частые вопросы</h2>
+      <div class="mx-auto mt-10 max-w-3xl">
+        <Faq items={regionFaq} />
+      </div>
+    </div>
+  </section>
+</SiteLayout>
