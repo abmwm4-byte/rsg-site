@@ -1,51 +1,43 @@
 ---
 import { getCollection } from 'astro:content';
-import SiteLayout from '../../../layouts/SiteLayout.astro';
-import MessengerButtons from '../../../components/MessengerButtons.astro';
-import { site } from '../../../data/site';
-import { withThumb } from '../../../utils/thumb';
-import { brandFromCar, brandBySlug, brandTexts, modelFromCar, slugify } from '../../../utils/brand';
-import Img from '../../../components/Img.astro';
+import SiteLayout from '../../../../layouts/SiteLayout.astro';
+import MessengerButtons from '../../../../components/MessengerButtons.astro';
+import { site } from '../../../../data/site';
+import { withThumb } from '../../../../utils/thumb';
+import { brandFromCar, modelFromCar, slugify } from '../../../../utils/brand';
+import Img from '../../../../components/Img.astro';
 
 export async function getStaticPaths() {
   const cases = await getCollection('cases');
-  const byBrand = new Map<string, typeof cases>();
+  // Группируем: brand → model → кейсы. Страницу делаем только если кейсов 2+
+  const groups = new Map<string, { brandSlug: string; brandName: string; model: string; list: typeof cases }>();
   for (const c of cases) {
     const b = brandFromCar(c.data.car);
     if (!b) continue;
-    byBrand.set(b.slug, [...(byBrand.get(b.slug) ?? []), c]);
+    const model = modelFromCar(c.data.car, b.match);
+    if (!model) continue;
+    const key = `${b.slug}/${slugify(model)}`;
+    const cur = groups.get(key);
+    if (cur) cur.list.push(c);
+    else groups.set(key, { brandSlug: b.slug, brandName: b.name, model, list: [c] });
   }
-  return [...byBrand.entries()]
-    .filter(([, list]) => list.length >= 1)
-    .map(([slug, list]) => ({ params: { brand: slug }, props: { list } }));
+  return [...groups.entries()]
+    .filter(([, g]) => g.list.length >= 2)
+    .map(([key, g]) => {
+      const [brand, model] = key.split('/');
+      return { params: { brand, model }, props: g };
+    });
 }
 
-const { list } = Astro.props;
-const brand = brandBySlug(Astro.params.brand)!;
-const cases = list.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-
-// Модели марки из кейсов (для текста и description)
-const models = [...new Set(cases.map((c) =>
-  c.data.car.replace(brand.match, '').split(/[,(]/)[0].replace(/^[-–\s]+/, '').trim()
-).filter(Boolean))].slice(0, 6);
+const g = Astro.props;
+const cases = g.list.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const fullName = `${g.brandName} ${g.model}`;
 
 const prices = cases
   .map((c) => parseInt(c.data.price.replace(/[^\d]/g, ''), 10))
   .filter((n) => Number.isFinite(n));
 const minPrice = prices.length ? Math.min(...prices) : null;
-
-const brandText = brandTexts[brand.slug] ?? [];
-
-// Модели с 2+ кейсами — для ссылок на модельные страницы
-const modelCounts = new Map<string, { model: string; count: number }>();
-for (const c of cases) {
-  const m = modelFromCar(c.data.car, brand.match);
-  if (!m) continue;
-  const key = slugify(m);
-  const cur = modelCounts.get(key);
-  modelCounts.set(key, { model: m, count: (cur?.count ?? 0) + 1 });
-}
-const modelLinks = [...modelCounts.entries()].filter(([, v]) => v.count >= 2);
+const maxPrice = prices.length ? Math.max(...prices) : null;
 
 const units = [...new Set(cases.map((c) => c.data.unit))];
 const unitsText = units.length === 2 ? 'стартеров и генераторов' : units[0] === 'Стартер' ? 'стартеров' : 'генераторов';
@@ -56,51 +48,33 @@ const breadcrumbSchema = {
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Главная', item: site.url },
     { '@type': 'ListItem', position: 2, name: 'Кейсы', item: `${site.url}/keisy/` },
-    { '@type': 'ListItem', position: 3, name: brand.name, item: `${site.url}/keisy/marki/${brand.slug}/` },
+    { '@type': 'ListItem', position: 3, name: g.brandName, item: `${site.url}/keisy/marki/${g.brandSlug}/` },
+    { '@type': 'ListItem', position: 4, name: g.model, item: `${site.url}/keisy/marki/${g.brandSlug}/${slugify(g.model)}/` },
   ],
 };
 ---
 
 <SiteLayout
-  title={`Ремонт ${unitsText} ${brand.name} в Минске — кейсы и цены | RSG Group`}
-  description={`Ремонт ${unitsText} ${brand.name} в Минске: ${models.join(', ')}. ${cases.length} реальных кейсов с ценами и сроками${minPrice ? `, цены от ${minPrice} BYN` : ''}. Гарантия 3 месяца.`}
+  title={`Ремонт ${unitsText} ${fullName} в Минске — кейсы и цены | RSG Group`}
+  description={`Ремонт ${unitsText} ${fullName} в Минске: ${cases.length} реальных кейсов${minPrice && maxPrice ? `, цены ${minPrice}–${maxPrice} BYN` : ''}, сроки 1–3 часа. Гарантия 3 месяца на работы и запчасти.`}
   ogImage={cases[0]?.data.photo ? `${site.url}${cases[0].data.photo}` : undefined}
 >
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 
   <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-6xl px-4 pb-12 pt-12">
-      <nav class="mb-4 text-sm text-slate-500 dark:text-slate-400"><a href="/" class="hover:text-blue-600">Главная</a> / <a href="/keisy/" class="hover:text-blue-600">Кейсы</a> / <span class="text-slate-700 dark:text-slate-300">{brand.name}</span></nav>
-      <h1 class="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white md:text-5xl">Ремонт {unitsText} {brand.name}</h1>
+      <nav class="mb-4 text-sm text-slate-500 dark:text-slate-400"><a href="/" class="hover:text-blue-600">Главная</a> / <a href="/keisy/" class="hover:text-blue-600">Кейсы</a> / <a href={`/keisy/marki/${g.brandSlug}/`} class="hover:text-blue-600">{g.brandName}</a> / <span class="text-slate-700 dark:text-slate-300">{g.model}</span></nav>
+      <h1 class="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white md:text-5xl">Ремонт {unitsText} {fullName}</h1>
       <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
-        Ремонтируем {units.length === 2 ? 'стартеры и генераторы' : units[0].toLowerCase() + 'ы'} {brand.name} со снятием и установкой или привезённый узел.
-        {models.length > 0 && <> Работали с: {models.join(', ')}.</>}
+        {fullName} — частый гость в нашей мастерской. Ниже — реальные ремонты с ценами и сроками.
       </p>
       <div class="mt-6 flex flex-wrap gap-3 text-sm">
         <span class="rounded-full bg-blue-50 px-4 py-2 font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">{cases.length} {cases.length === 1 ? 'кейс' : cases.length < 5 ? 'кейса' : 'кейсов'}</span>
-        {minPrice && <span class="rounded-full bg-emerald-50 px-4 py-2 font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">цены от {minPrice} BYN</span>}
+        {minPrice && maxPrice && <span class="rounded-full bg-emerald-50 px-4 py-2 font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">цены {minPrice}–{maxPrice} BYN</span>}
         <span class="rounded-full bg-amber-50 px-4 py-2 font-semibold text-amber-700 dark:bg-amber-950 dark:text-amber-300">гарантия 3 месяца</span>
       </div>
-      {modelLinks.length > 0 && (
-        <div class="mt-4 flex flex-wrap gap-2 text-sm">
-          {modelLinks.map(([slug, v]) => (
-            <a href={`/keisy/marki/${brand.slug}/${slug}/`} class="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">
-              {brand.name} {v.model} <span class="text-slate-400 dark:text-slate-500">{v.count}</span>
-            </a>
-          ))}
-        </div>
-      )}
     </div>
   </section>
-
-  {brandText.length > 0 && (
-    <section class="mx-auto max-w-3xl px-4 pt-12">
-      <h2 class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Типичные неисправности {brand.name} — из практики</h2>
-      {brandText.map((p) => (
-        <p class="mt-4 leading-relaxed text-slate-700 dark:text-slate-300">{p}</p>
-      ))}
-    </section>
-  )}
 
   <section class="mx-auto max-w-6xl px-4 py-16">
     <div class="grid gap-5 md:grid-cols-2">
@@ -129,7 +103,7 @@ const breadcrumbSchema = {
   <!-- CTA -->
   <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-6xl px-4 py-16 text-center">
-      <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Проблема со стартером или генератором {brand.name}?</h2>
+      <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Проблема со стартером или генератором {fullName}?</h2>
       <p class="mx-auto mt-3 max-w-xl text-slate-600 dark:text-slate-400">Позвоните или напишите — подскажем по симптомам и назовём примерную цену. Приезжайте без записи: {site.hours}.</p>
       <div class="mt-8 flex flex-wrap justify-center gap-3">
         <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">Позвонить</a>

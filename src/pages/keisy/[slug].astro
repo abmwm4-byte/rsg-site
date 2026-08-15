@@ -52,6 +52,7 @@ const caseSchema = [
 <SiteLayout
   title={`${d.title} — кейс RSG Group, Минск`}
   description={`${d.car}. ${d.symptom} Работы: ${d.solution} Стоимость: ${d.price}, срок: ${d.time}. Гарантия 3 месяца.`}
+  ogImage={d.photo ? `${site.url}${d.photo}` : undefined}
 >
   <!-- Полоска прогресса чтения -->
   <div id="read-progress" class="fixed left-0 top-0 z-[60] h-0.5 w-0 bg-blue-600 dark:bg-blue-400"></div>

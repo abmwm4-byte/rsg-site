@@ -1,0 +1,128 @@
+---
+import { getCollection } from 'astro:content';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import MessengerButtons from '../../components/MessengerButtons.astro';
+import Img from '../../components/Img.astro';
+import { site, symptoms } from '../../data/site';
+import { withThumb } from '../../utils/thumb';
+
+export function getStaticPaths() {
+  return symptoms.map((s) => ({ params: { slug: s.slug }, props: { s } }));
+}
+
+const { s } = Astro.props;
+
+// Кейсы той же тематики (по узлу) — свежие первыми
+const cases = (await getCollection('cases'))
+  .filter((c) => c.data.unit === s.unit)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 4);
+
+const serviceHref = s.unit === 'Стартер' ? '/remont-starterov/' : '/remont-generatorov/';
+const serviceLabel = s.unit === 'Стартер' ? 'Ремонт стартеров' : 'Ремонт генераторов';
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Главная', item: site.url },
+      { '@type': 'ListItem', position: 2, name: 'Симптомы', item: `${site.url}/simptomy/` },
+      { '@type': 'ListItem', position: 3, name: s.title, item: `${site.url}/simptomy/${s.slug}/` },
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `${s.title} — в чём причина?`,
+        acceptedAnswer: { '@type': 'Answer', text: `Чаще всего: ${s.cause.charAt(0).toLowerCase()}${s.cause.slice(1)}. Точную причину покажет диагностика — она занимает 15–20 минут.` },
+      },
+      {
+        '@type': 'Question',
+        name: `Сколько стоит ремонт, если ${s.title.toLowerCase()}?`,
+        acceptedAnswer: { '@type': 'Answer', text: `По нашим кейсам — от ${s.priceMin} до ${s.priceMax} BYN с запчастями, в зависимости от автомобиля и объёма работ. Точную цену называем после дефектовки, до начала работ.` },
+      },
+    ],
+  },
+];
+---
+
+<SiteLayout
+  title={`${s.title}: причины и цена ремонта в Минске — RSG Group`}
+  description={`${s.title}? ${s.cause}. Ремонт от ${s.priceMin} до ${s.priceMax} BYN, 1–3 часа, гарантия 3 месяца. Диагностика перед ремонтом.`}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+
+  <section class="bg-white dark:bg-slate-900">
+    <div class="mx-auto max-w-3xl px-4 pb-12 pt-12">
+      <nav class="mb-4 text-sm text-slate-500 dark:text-slate-400"><a href="/" class="hover:text-blue-600">Главная</a> / <a href="/simptomy/" class="hover:text-blue-600">Симптомы</a> / <span class="text-slate-700 dark:text-slate-300">{s.title}</span></nav>
+      <div class="flex items-center gap-2">
+        <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">{s.unit}</span>
+      </div>
+      <h1 class="mt-3 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white md:text-4xl">{s.h1}</h1>
+      <p class="mt-5 text-lg leading-relaxed text-slate-600 dark:text-slate-400">{s.text[0]}</p>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-4 py-12">
+    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-800/60 dark:bg-amber-950/40">
+      <div class="text-sm font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">Вероятная причина</div>
+      <p class="mt-2 leading-relaxed text-slate-700 dark:text-slate-300">{s.cause}.</p>
+    </div>
+    <div class="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-800/60 dark:bg-emerald-950/40">
+      <div class="text-sm font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">Сколько стоит по нашим кейсам</div>
+      <p class="mt-2 text-2xl font-extrabold text-emerald-700 dark:text-emerald-400">{s.priceMin}–{s.priceMax} BYN</p>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Точную цену называем после дефектовки — до начала работ. Диагностика 15–20 минут.</p>
+    </div>
+
+    {s.text.slice(1).map((p) => (
+      <p class="mt-6 leading-relaxed text-slate-700 dark:text-slate-300">{p}</p>
+    ))}
+  </section>
+
+  {cases.length > 0 && (
+    <section class="bg-white dark:bg-slate-900">
+      <div class="mx-auto max-w-6xl px-4 py-16">
+        <h2 class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white md:text-3xl">Кейсы с такой проблемой</h2>
+        <div class="mt-8 grid gap-5 md:grid-cols-2">
+          {cases.map((entry) => (
+            <a href={`/keisy/${entry.id}/`} class="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl dark:border-slate-700 dark:bg-slate-800">
+              {(entry.data.after || entry.data.photo) && (
+                <Img src={withThumb(entry.data.after ?? entry.data.photo)!} alt={entry.data.title} width={640} height={360} class="aspect-[16/9] w-full object-cover" />
+              )}
+              <div class="p-6">
+                <div class="flex items-center gap-2">
+                  <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">{entry.data.unit}</span>
+                  <span class="text-xs text-slate-500 dark:text-slate-400">{entry.data.date.toLocaleDateString('ru-BY', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                </div>
+                <h3 class="mt-3 text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600">{entry.data.title}</h3>
+                <div class="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-700 text-sm">
+                  <span class="font-extrabold text-blue-700 dark:text-blue-400">{entry.data.price}</span>
+                  <span class="text-slate-500 dark:text-slate-400">{entry.data.time}</span>
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- CTA -->
+  <section class="bg-white dark:bg-slate-900">
+    <div class="mx-auto max-w-6xl px-4 py-16 text-center">
+      <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">У вашей машины такой симптом?</h2>
+      <p class="mx-auto mt-3 max-w-xl text-slate-600 dark:text-slate-400">Позвоните или напишите — по описанию подскажем вероятную причину и вилку цены. Приезжайте без записи: {site.hours}.</p>
+      <div class="mt-8 flex flex-wrap justify-center gap-3">
+        <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">Позвонить</a>
+        <MessengerButtons size="lg" />
+      </div>
+      <p class="mt-6 text-slate-600 dark:text-slate-400">
+        <a href={serviceHref} class="font-semibold text-blue-600 underline decoration-blue-300 underline-offset-4 transition hover:text-blue-700 dark:text-blue-400">{serviceLabel} →</a>
+      </p>
+    </div>
+  </section>
+</SiteLayout>

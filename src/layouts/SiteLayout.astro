@@ -9,9 +9,10 @@ import { site } from '../data/site';
 interface Props {
   title: string;
   description: string;
+  ogImage?: string;
 }
 
-const { title, description } = Astro.props;
+const { title, description, ogImage } = Astro.props;
 
 const schema = {
   '@context': 'https://schema.org',
@@ -35,7 +36,7 @@ const schema = {
 };
 ---
 
-<Base title={title} description={description}>
+<Base title={title} description={description} ogImage={ogImage}>
   <script type="application/ld+json" set:html={JSON.stringify(schema)} />
   <div class="min-h-dvh bg-slate-50 font-[Inter] text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200">
     <Header />

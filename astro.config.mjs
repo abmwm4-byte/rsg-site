@@ -57,5 +57,11 @@ export default defineConfig({
     processor: satteri({ hastPlugins: [lazyImages] })
   },
 
-  integrations: [sitemap()]
+  integrations: [sitemap({
+    serialize(item) {
+      // lastmod = дата билда: поисковики видят свежесть после каждого деплоя
+      item.lastmod = new Date().toISOString();
+      return item;
+    },
+  })]
 });
