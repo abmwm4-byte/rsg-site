@@ -7,6 +7,15 @@ const reviewsSchema = {
   '@type': 'AutoRepair',
   name: site.legalName,
   url: site.url,
+  telephone: site.phones[0].number,
+  priceRange: '60–500 BYN',
+  image: `${site.url}/images/workshop-engine.jpg`,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: '2-й Короткий пер., 23',
+    addressLocality: 'Минск',
+    addressCountry: 'BY',
+  },
   aggregateRating: {
     '@type': 'AggregateRating',
     ratingValue: site.rating.value,
