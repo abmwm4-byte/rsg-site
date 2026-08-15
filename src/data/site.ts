@@ -251,6 +251,7 @@ export const quiz = [
 export const symptoms = [
   {
     slug: 'starter-shelkaet',
+    partTags: ['vtyag', 'shhetki'],
     title: 'Стартер щёлкает, но не крутит',
     h1: 'Стартер щёлкает, но не крутит двигатель',
     unit: 'Стартер' as const,
@@ -264,6 +265,7 @@ export const symptoms = [
   },
   {
     slug: 'starter-medlenno-krutit',
+    partTags: ['shhetki', 'vtulki'],
     title: 'Стартер крутит медленно, в натяг',
     h1: 'Стартер крутит медленно, «в натяг»',
     unit: 'Стартер' as const,
@@ -277,6 +279,7 @@ export const symptoms = [
   },
   {
     slug: 'starter-skrezhet',
+    partTags: ['bendiks', 'vtulki'],
     title: 'Скрежет или свист при запуске двигателя',
     h1: 'Скрежет или свист при запуске двигателя',
     unit: 'Стартер' as const,
@@ -290,6 +293,7 @@ export const symptoms = [
   },
   {
     slug: 'gorit-lampochka-akkumulyatora',
+    partTags: ['rele', 'shhetki', 'diodny', 'kollektor'],
     title: 'Горит лампочка аккумулятора на панели',
     h1: 'Горит лампочка аккумулятора на панели',
     unit: 'Генератор' as const,
@@ -303,6 +307,7 @@ export const symptoms = [
   },
   {
     slug: 'akkumulyator-bystro-razryazhaetsya',
+    partTags: ['rele', 'diodny', 'massa'],
     title: 'Аккумулятор быстро разряжается',
     h1: 'Аккумулятор быстро разряжается',
     unit: 'Генератор' as const,
@@ -316,6 +321,7 @@ export const symptoms = [
   },
   {
     slug: 'gul-svist-generatora',
+    partTags: ['podshipniki'],
     title: 'Гул или свист из-под капота, тусклые фары',
     h1: 'Гул или свист из-под капота, тусклые фары',
     unit: 'Генератор' as const,

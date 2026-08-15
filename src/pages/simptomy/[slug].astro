@@ -5,6 +5,7 @@ import MessengerButtons from '../../components/MessengerButtons.astro';
 import Img from '../../components/Img.astro';
 import { site, symptoms } from '../../data/site';
 import { withThumb } from '../../utils/thumb';
+import { caseHasAnyTag } from '../../utils/parts';
 
 export function getStaticPaths() {
   return symptoms.map((s) => ({ params: { slug: s.slug }, props: { s } }));
@@ -12,11 +13,12 @@ export function getStaticPaths() {
 
 const { s } = Astro.props;
 
-// Кейсы той же тематики (по узлу) — свежие первыми
-const cases = (await getCollection('cases'))
+// Кейсы той же тематики: сначала с совпадающими деталями (теги), потом свежие по узлу
+const byUnit = (await getCollection('cases'))
   .filter((c) => c.data.unit === s.unit)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 4);
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const tagged = byUnit.filter((c) => caseHasAnyTag(c, s.partTags));
+const cases = [...tagged, ...byUnit.filter((c) => !tagged.includes(c))].slice(0, 4);
 
 const serviceHref = s.unit === 'Стартер' ? '/remont-starterov/' : '/remont-generatorov/';
 const serviceLabel = s.unit === 'Стартер' ? 'Ремонт стартеров' : 'Ремонт генераторов';

@@ -4,47 +4,40 @@ import SiteLayout from '../../layouts/SiteLayout.astro';
 import MessengerButtons from '../../components/MessengerButtons.astro';
 import { site } from '../../data/site';
 import { withThumb } from '../../utils/thumb';
-import { brandFromCar } from '../../utils/brand';
 import Img from '../../components/Img.astro';
 
-const cases = (await getCollection('cases')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const cases = (await getCollection('cases'))
+  .filter((c) => c.data.unit === 'Генератор')
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-// Марки авто из кейсов (для чипсов-фильтров на посадочные страницы)
-const brandCounts = new Map<string, { name: string; count: number }>();
-for (const c of cases) {
-  const b = brandFromCar(c.data.car);
-  if (!b) continue;
-  const cur = brandCounts.get(b.slug);
-  brandCounts.set(b.slug, { name: b.name, count: (cur?.count ?? 0) + 1 });
-}
-const brands = [...brandCounts.entries()].sort((a, b) => b[1].count - a[1].count);
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Главная', item: site.url },
+    { '@type': 'ListItem', position: 2, name: 'Кейсы', item: `${site.url}/keisy/` },
+    { '@type': 'ListItem', position: 3, name: 'Генераторы', item: `${site.url}/keisy/generatory/` },
+  ],
+};
 ---
 
 <SiteLayout
-  title="Кейсы по ремонту стартеров и генераторов — RSG Group, Минск"
-  description="Реальные кейсы из мастерской RSG Group: симптомы, причины, работы, сроки и цены. Ремонт стартеров и генераторов в Минске с гарантией 3 месяца."
+  title="Кейсы по ремонту генераторов — цены и сроки | RSG Group, Минск"
+  description={`Реальные кейсы ремонта генераторов: ${cases.length} ремонтов с ценами, сроками и фото. Замена щёток, подшипников, реле-регулятора, диодного моста. Гарантия 3 месяца.`}
 >
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
   <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-6xl px-4 pb-12 pt-12">
-      <nav class="mb-4 text-sm text-slate-500 dark:text-slate-400"><a href="/" class="hover:text-blue-600">Главная</a> / <span class="text-slate-700 dark:text-slate-300">Кейсы</span></nav>
-      <h1 class="max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white md:text-5xl">Кейсы из мастерской</h1>
+      <nav class="mb-4 text-sm text-slate-500 dark:text-slate-400"><a href="/" class="hover:text-blue-600">Главная</a> / <a href="/keisy/" class="hover:text-blue-600">Кейсы</a> / <span class="text-slate-700 dark:text-slate-300">Генераторы</span></nav>
+      <h1 class="max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white md:text-5xl">Кейсы по генераторам</h1>
       <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
-        Реальные ремонты: с чем приехали, что оказалось, что сделали и сколько это стоило.
+        Щётки, подшипники, реле-регуляторы, диодные мосты — реальные ремонты с ценами и сроками.
       </p>
-    </div>
-  </section>
-
-  <section class="mx-auto max-w-6xl px-4 pt-10">
-    <div class="mb-4 flex gap-2 text-sm">
-      <a href="/keisy/startery/" class="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">Стартеры</a>
-      <a href="/keisy/generatory/" class="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">Генераторы</a>
-    </div>
-    <div class="flex flex-wrap gap-2">
-      {brands.map(([slug, b]) => (
-        <a href={`/keisy/marki/${slug}/`} class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">
-          {b.name} <span class="text-slate-400 dark:text-slate-500">{b.count}</span>
-        </a>
-      ))}
+      <div class="mt-6 flex gap-2 text-sm">
+        <span class="rounded-full bg-blue-600 px-4 py-2 font-semibold text-white">Генераторы · {cases.length}</span>
+        <a href="/keisy/startery/" class="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400">Стартеры →</a>
+      </div>
     </div>
   </section>
 
@@ -75,12 +68,15 @@ const brands = [...brandCounts.entries()].sort((a, b) => b[1].count - a[1].count
   <!-- CTA -->
   <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-6xl px-4 py-16 text-center">
-      <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Узнали свою проблему?</h2>
+      <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Проблема с генератором?</h2>
       <p class="mx-auto mt-3 max-w-xl text-slate-600 dark:text-slate-400">Позвоните или напишите — подскажем по симптомам и назовём примерную цену. Приезжайте без записи: {site.hours}.</p>
       <div class="mt-8 flex flex-wrap justify-center gap-3">
         <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700">Позвонить</a>
         <MessengerButtons size="lg" />
       </div>
+      <p class="mt-6 text-slate-600 dark:text-slate-400">
+        <a href="/remont-starterov/" class="font-semibold text-blue-600 underline decoration-blue-300 underline-offset-4 transition hover:text-blue-700 dark:text-blue-400">Ремонт стартеров — цены и условия →</a>
+      </p>
     </div>
   </section>
 </SiteLayout>

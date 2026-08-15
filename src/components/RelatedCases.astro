@@ -17,13 +17,14 @@ const cases = (await getCollection('cases'))
   .slice(0, limit);
 
 const heading = title ?? `Недавние кейсы: ${unit.toLowerCase()}`;
+const allHref = unit === 'Стартер' ? '/keisy/startery/' : unit === 'Генератор' ? '/keisy/generatory/' : '/keisy/';
 ---
 
 {cases.length > 0 && (
   <section class="mx-auto max-w-6xl px-4 py-16">
     <div class="mb-8 flex items-end justify-between gap-4">
       <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">{heading}</h2>
-      <a href="/keisy/" class="hidden shrink-0 text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 sm:block">Все кейсы →</a>
+      <a href={allHref} class="hidden shrink-0 text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 sm:block">Все кейсы →</a>
     </div>
     <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {cases.map((entry) => (
@@ -42,6 +43,6 @@ const heading = title ?? `Недавние кейсы: ${unit.toLowerCase()}`;
         </a>
       ))}
     </div>
-    <a href="/keisy/" class="mt-6 inline-block text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 sm:hidden">Все кейсы →</a>
+    <a href={allHref} class="mt-6 inline-block text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 sm:hidden">Все кейсы →</a>
   </section>
 )}
