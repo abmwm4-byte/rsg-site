@@ -1,4 +1,5 @@
 ---
+import { getCollection } from 'astro:content';
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import MessengerButtons from '../../components/MessengerButtons.astro';
 import { site, articles } from '../../data/site';
@@ -9,6 +10,15 @@ export function getStaticPaths() {
 
 const { a } = Astro.props;
 const dateRu = new Date(a.date).toLocaleDateString('ru-BY', { day: 'numeric', month: 'long', year: 'numeric' });
+
+// Подбор кейсов (если статья про генератор — берем генераторы, если про стартер — стартеры)
+const isGen = a.title.toLowerCase().includes('генератор');
+const isStart = a.title.toLowerCase().includes('стартер');
+const allCases = await getCollection('cases');
+const relatedCases = allCases
+  .filter(c => (isGen && c.data.unit === 'Генератор') || (isStart && c.data.unit === 'Стартер'))
+  .sort((x, y) => y.data.date.valueOf() - x.data.date.valueOf())
+  .slice(0, 3);
 
 const schema = [
   {
@@ -53,6 +63,23 @@ const schema = [
       </div>
     </div>
   </article>
+
+  {relatedCases.length > 0 && (
+    <section class="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50">
+      <div class="mx-auto max-w-4xl px-4 py-16">
+        <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-8 text-center">Связанные примеры из нашей практики</h2>
+        <div class="grid gap-4 sm:grid-cols-3">
+          {relatedCases.map((c) => (
+            <a href={`/keisy/${c.id}/`} class="group block rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-800">
+              <div class="text-xs font-semibold text-blue-600 dark:text-blue-400">{c.data.unit}</div>
+              <h3 class="mt-2 font-bold leading-snug text-slate-900 group-hover:text-blue-600 dark:text-white">{c.data.car}</h3>
+              <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{c.data.symptom}</p>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
 
   <!-- CTA -->
   <section class="bg-white dark:bg-slate-900">

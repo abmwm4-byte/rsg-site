@@ -3,7 +3,7 @@ import { getCollection, render } from 'astro:content';
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import BeforeAfter from '../../components/BeforeAfter.astro';
 import MessengerButtons from '../../components/MessengerButtons.astro';
-import { site } from '../../data/site';
+import { site, articles, symptoms } from '../../data/site';
 import { serviceByUnit, withThumb } from '../../utils/thumb';
 import { brandFromCar } from '../../utils/brand';
 import Img from '../../components/Img.astro';
@@ -24,6 +24,10 @@ const nextCase = all.find((c) => c.id !== entry.id && c.data.unit === d.unit)
   ?? all[(all.findIndex((c) => c.id === entry.id) + 1) % all.length];
 
 const brand = brandFromCar(d.car);
+
+// Связанные статьи и симптомы по узлу
+const relatedArticles = articles.filter(a => d.unit === 'Стартер' ? a.title.toLowerCase().includes('стартер') : a.title.toLowerCase().includes('генератор')).slice(0, 1);
+const relatedSymptoms = symptoms.filter(s => s.unit === d.unit).slice(0, 2);
 
 const caseSchema = [
   {
@@ -153,6 +157,26 @@ const caseSchema = [
       </p>
     </div>
   </section>
+
+  {(relatedArticles.length > 0 || relatedSymptoms.length > 0) && (
+    <section class="mx-auto max-w-3xl px-4 pb-8">
+      <h3 class="mb-4 font-bold text-slate-900 dark:text-white">Полезное по теме:</h3>
+      <div class="grid gap-4 sm:grid-cols-2">
+        {relatedSymptoms.map(s => (
+          <a href={`/simptomy/${s.slug}/`} class="group block rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:shadow-sm dark:border-slate-700 dark:bg-slate-800">
+            <span class="text-xs font-semibold text-blue-600 dark:text-blue-400">Симптомы</span>
+            <span class="mt-1 block font-bold text-slate-900 group-hover:text-blue-600 dark:text-white">{s.title}</span>
+          </a>
+        ))}
+        {relatedArticles.map(a => (
+          <a href={`/stati/${a.slug}/`} class="group block rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:-translate-y-0.5 hover:shadow-sm dark:border-slate-700 dark:bg-slate-800">
+            <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Статья</span>
+            <span class="mt-1 block font-bold text-slate-900 group-hover:text-emerald-600 dark:text-white">{a.title}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
 
   {nextCase && (
     <section class="mx-auto max-w-3xl px-4 pb-16">
