@@ -18,9 +18,9 @@ export const site = {
     // Telegram: чат по номеру (t.me/+PHONE). Работает, если у владельца номера в
     // настройках «Конфиденциальность → Кто может найти меня по номеру» стоит «Все».
     // Когда появится username — заменить на https://t.me/USERNAME (красивее: имя вместо номера).
+    { name: 'Viber', href: 'viber://chat?number=%2B375291539222', goal: 'viber' },
     { name: 'Telegram', href: 'https://t.me/+375291539222', goal: 'telegram' },
     { name: 'WhatsApp', href: 'https://wa.me/375291539222?text=' + encodeURIComponent('Здравствуйте! Вопрос по ремонту стартера/генератора.'), goal: 'whatsapp' },
-    { name: 'Viber', href: 'viber://chat?number=%2B375291539222', goal: 'viber' },
   ],
   whatsappNumber: '375291539222',
   rating: { value: 4.9, reviewsCount: 67, source: 'Яндекс Карты' },

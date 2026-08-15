@@ -40,7 +40,9 @@ const quizWithLinks = quiz.map((q) => ({ ...q, symptomSlug: symptomByQuizId[q.id
       <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">Точную причину и цену назовём после диагностики — она бесплатна.</p>
       <div class="mt-6 flex flex-wrap justify-center gap-3">
         <a href={site.phones[0].href} data-goal="call" class="rounded-2xl bg-blue-600 px-6 py-3 font-bold text-white transition hover:bg-blue-700">Позвонить</a>
-        <a id="quiz-wa" href="#" data-goal="whatsapp" class="rounded-2xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:text-blue-400">Написать в WhatsApp</a>
+        {site.messengers.filter((m) => m.name === 'Viber' || m.name === 'Telegram').map((m) => (
+          <a href={m.href} data-goal={m.goal} class="rounded-2xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:text-blue-400">Написать в {m.name}</a>
+        ))}
         <button id="quiz-reset" type="button" class="px-4 py-3 text-sm font-semibold text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">Не мой случай ↺</button>
       </div>
       <p class="mt-4"><a id="quiz-more" href="/simptomy/" class="text-sm font-semibold text-blue-600 underline decoration-blue-300 underline-offset-4 transition hover:text-blue-700 dark:text-blue-400">Подробнее об этом симптоме →</a></p>
@@ -48,12 +50,11 @@ const quizWithLinks = quiz.map((q) => ({ ...q, symptomSlug: symptomByQuizId[q.id
   </div>
 </section>
 
-<script define:vars={{ quizData: quizWithLinks, waNumber: site.whatsappNumber }}>
+<script define:vars={{ quizData: quizWithLinks }}>
   const options = document.getElementById('quiz-options');
   const result = document.getElementById('quiz-result');
   const causeEl = document.getElementById('quiz-cause');
   const priceEl = document.getElementById('quiz-price');
-  const waLink = document.getElementById('quiz-wa');
   const moreLink = document.getElementById('quiz-more');
   const resetBtn = document.getElementById('quiz-reset');
 
@@ -63,7 +64,6 @@ const quizWithLinks = quiz.map((q) => ({ ...q, symptomSlug: symptomByQuizId[q.id
       if (!q) return;
       causeEl.textContent = `${q.unit}: ${q.cause}`;
       priceEl.textContent = `${q.priceMin}–${q.priceMax} BYN`;
-      waLink.href = `https://wa.me/${waNumber}?text=` + encodeURIComponent(`Здравствуйте! Симптом: ${q.symptom}. Подскажите по ремонту.`);
       if (q.symptomSlug) moreLink.href = `/simptomy/${q.symptomSlug}/`;
       options.classList.add('hidden');
       result.classList.remove('hidden');
