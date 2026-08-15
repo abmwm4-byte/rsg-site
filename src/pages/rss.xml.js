@@ -2,9 +2,7 @@ import rss from '@astrojs/rss';
 import { getCollection } from 'astro:content';
 import { site, articles } from '../data/site';
 
-export const prerender = true;
-
-export async function GET(context: any) {
+export async function GET(context) {
   const cases = await getCollection('cases');
   
   const caseItems = cases.map((c) => ({
