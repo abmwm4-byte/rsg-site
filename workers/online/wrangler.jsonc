@@ -5,5 +5,5 @@
   "durable_objects": {
     "bindings": [{ "name": "ONLINE", "class_name": "OnlineCounter" }]
   },
-  "migrations": [{ "tag": "v1", "new_classes": ["OnlineCounter"] }]
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["OnlineCounter"] }]
 }
