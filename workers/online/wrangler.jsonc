@@ -2,6 +2,7 @@
   "name": "rsg-online",
   "main": "index.ts",
   "compatibility_date": "2026-04-15",
+  "workers_dev": false,
   "durable_objects": {
     "bindings": [{ "name": "ONLINE", "class_name": "OnlineCounter" }]
   },
