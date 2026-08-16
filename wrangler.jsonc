@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Пин реального KV-namespace (создан руками; без id адаптер заставлял
+  // wrangler пересоздавать привязку при каждом деплое)
+  "kv_namespaces": [{ "binding": "SESSION", "id": "46e11fb05dd3479cbf6c9a6c17f611a1" }],
+  // Счётчик онлайна: отдельный мини-воркер с Durable Object (см. workers/online)
+  "services": [{ "binding": "ONLINE_COUNTER", "service": "rsg-online" }]
+}
