@@ -1,30 +1,39 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 
-// Счётчик «сейчас на сайте»: хеш IP уходит в мини-воркер rsg-online
-// (Durable Object, окно 120 сек). KV для этого не используем — бесплатный
-// план даёт всего 1000 записей/list'ов в день, чего не хватает на трафик.
+// Уникальные посетители за сутки (по минскому времени): хеш IP пишется в KV
+// один раз в день, счётчик инкрементируется при новом уникальном хеше.
+// Читатели (виджет) читают только ключ счётчика — list-операции не нужны,
+// в лимиты бесплатного плана (1000 записей/день) укладываемся с запасом.
 export const prerender = false;
 
-export const GET: APIRoute = async ({ clientAddress }) => {
-  try {
-    const counter = (env as { ONLINE_COUNTER?: { fetch: typeof fetch } }).ONLINE_COUNTER;
-    if (!counter) return Response.json({ online: 1 });
+const dayKeyMinsk = () =>
+  new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Minsk', year: 'numeric', month: '2-digit', day: '2-digit' })
+    .format(new Date()); // YYYY-MM-DD
 
-    // Хешируем IP — сами адреса никуда не отправляем и не храним
+export const GET: APIRoute = async ({ clientAddress }) => {
+  const fallback = () => Response.json({ online: 1 }, { headers: { 'Cache-Control': 'no-store' } });
+  try {
+    const kv = (env as { SESSION?: KVNamespace }).SESSION;
+    if (!kv) return fallback();
+
+    const day = dayKeyMinsk();
+    const countKey = `uniq:${day}:_count`;
+
+    // Хешируем IP — сами адреса не храним
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(clientAddress));
     const hash = [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
 
-    const res = await counter.fetch(`https://counter/hit?h=${hash}`, {
-      headers: { 'x-counter-auth': 'rsg-online-7f3d9a' },
-    });
-    const data = (await res.json()) as { online?: number };
-    return Response.json(
-      { online: Math.max(1, data.online ?? 1) },
-      { headers: { 'Cache-Control': 'no-store' } },
-    );
+    const seen = await kv.get(`uniq:${day}:${hash}`);
+    if (!seen) {
+      await kv.put(`uniq:${day}:${hash}`, '1', { expirationTtl: 90000 }); // 25ч — живёт до конца суток
+      const cur = parseInt((await kv.get(countKey)) ?? '0', 10);
+      await kv.put(countKey, String(cur + 1), { expirationTtl: 172800 }); // 48ч
+    }
+
+    const total = parseInt((await kv.get(countKey)) ?? '0', 10);
+    return Response.json({ online: Math.max(1, total) }, { headers: { 'Cache-Control': 'no-store' } });
   } catch {
-    // Счётчик недоступен — не роняем endpoint
-    return Response.json({ online: 1 }, { headers: { 'Cache-Control': 'no-store' } });
+    return fallback();
   }
 };

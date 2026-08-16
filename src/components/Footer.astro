@@ -34,14 +34,14 @@ import { site, nav } from '../data/site';
       <p>© 2010–2026 {site.legalName}. УНП: {site.unp}. Все права защищены.</p>
       <p id="online-counter" class="hidden items-center gap-1.5">
         <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500"></span>
-        <span>Сейчас на сайте: <b id="online-count">—</b></span>
+        <span>Сегодня на сайте: <b id="online-count">—</b></span>
       </p>
     </div>
   </div>
 </footer>
 
 <script is:inline>
-  // Счётчик онлайна: опрашиваем /api/online, обновляем каждые 60 сек
+  // Уникальные посетители за сутки: опрашиваем /api/online, обновляем каждые 60 сек
   (() => {
     const box = document.getElementById('online-counter');
     const num = document.getElementById('online-count');
