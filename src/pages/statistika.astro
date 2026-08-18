@@ -11,6 +11,7 @@ if (Astro.url.searchParams.get('k') !== 'rsg-stats-2026') {
 }
 
 Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+Astro.response.headers.set('Cache-Control', 'no-store');
 
 const kv = (env as { SESSION?: KVNamespace }).SESSION;
 
