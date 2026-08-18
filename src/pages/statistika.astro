@@ -20,12 +20,15 @@ const dayKeyMinsk = (d: Date) =>
 const today = dayKeyMinsk(new Date());
 
 let todayCount = 0;
+let totalAll = 0;
 let devices: [string, number][] = [];
 let refs: [string, number][] = [];
-let history: { day: string; count: number }[] = [];
+let days30: { day: string; count: number }[] = [];
+let months: { month: string; count: number }[] = [];
 
 if (kv) {
   todayCount = parseInt((await kv.get(`uniq:${today}:_count`)) ?? '0', 10);
+  totalAll = parseInt((await kv.get('total:all')) ?? '0', 10);
 
   const readGroup = async (prefix: string): Promise<[string, number][]> => {
     const { keys } = await kv.list({ prefix });
@@ -38,49 +41,95 @@ if (kv) {
   devices = await readGroup(`stats:${today}:dev:`);
   refs = (await readGroup(`stats:${today}:ref:`)).filter(([name]) => name !== 'Внутренние переходы');
 
-  const days = await Promise.all(
-    Array.from({ length: 7 }, async (_, i) => {
-      const day = dayKeyMinsk(new Date(Date.now() - i * 86400000));
+  days30 = await Promise.all(
+    Array.from({ length: 30 }, async (_, i) => {
+      const day = dayKeyMinsk(new Date(Date.now() - (29 - i) * 86400000));
       return { day, count: parseInt((await kv.get(`uniq:${day}:_count`)) ?? '0', 10) };
     }),
   );
-  history = days.reverse();
+
+  const monthsRaw = await Promise.all(
+    Array.from({ length: 12 }, async (_, i) => {
+      const d = new Date();
+      d.setMonth(d.getMonth() - (11 - i));
+      const month = dayKeyMinsk(d).slice(0, 7);
+      return { month, count: parseInt((await kv.get(`month:${month}:_count`)) ?? '0', 10) };
+    }),
+  );
+  // Крайний месяц может дублироваться из-за сдвига setMonth — убираем дубли
+  months = monthsRaw.filter((m, i) => monthsRaw.findIndex((x) => x.month === m.month) === i);
 }
 
 const devLabel: Record<string, string> = { mobile: 'Мобильные', desktop: 'Компьютеры', tablet: 'Планшеты' };
-const maxHist = Math.max(1, ...history.map((h) => h.count));
+const max30 = Math.max(1, ...days30.map((h) => h.count));
+const maxMonth = Math.max(1, ...months.map((m) => m.count));
 const devTotal = Math.max(1, devices.reduce((s, [, n]) => s + n, 0));
 
 const dayRu = (iso: string) =>
-  new Date(iso + 'T12:00:00+03:00').toLocaleDateString('ru-BY', { weekday: 'short', day: 'numeric', month: 'short' });
+  new Date(iso + 'T12:00:00+03:00').toLocaleDateString('ru-BY', { day: 'numeric', month: 'short' });
+const monthRu = (iso: string) =>
+  new Date(iso + '-15T12:00:00+03:00').toLocaleDateString('ru-BY', { month: 'short', year: '2-digit' });
 ---
 
 <SiteLayout title="Статистика сайта — внутренняя" description="Внутренняя страница статистики посещаемости.">
   <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-4xl px-4 py-14">
       <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Статистика сайта</h1>
-      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Уникальные посетители по хешу IP, сутки — по минскому времени. Данные с сегодняшнего дня.</p>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Уникальные посетители по хешу IP, сутки — по минскому времени. Дневные и месячные счётчики хранятся бессрочно.</p>
 
-      <div class="mt-8 grid gap-4 sm:grid-cols-3">
+      <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div class="rounded-2xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-950/40">
           <div class="text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-400">Сегодня</div>
           <div class="mt-2 text-4xl font-extrabold text-blue-700 dark:text-blue-300">{todayCount}</div>
-          <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">уникальных посетителей</div>
+          <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">уникальных</div>
+        </div>
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-800 dark:bg-emerald-950/40">
+          <div class="text-sm font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">Всего</div>
+          <div class="mt-2 text-4xl font-extrabold text-emerald-700 dark:text-emerald-300">{totalAll}</div>
+          <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">с 18 августа 2026</div>
         </div>
         {devices.map(([dev, n]) => (
           <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800">
             <div class="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{devLabel[dev] ?? dev}</div>
             <div class="mt-2 text-4xl font-extrabold text-slate-900 dark:text-white">{n}</div>
-            <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">{Math.round((n / devTotal) * 100)}% от сегодняшних</div>
+            <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">{Math.round((n / devTotal) * 100)}% сегодня</div>
           </div>
         ))}
       </div>
+      <p class="mt-2 text-xs text-slate-400 dark:text-slate-500">Разбивка по устройствам и источникам собирается с вечера 18 августа — поэтому в первый день сумма меньше общего счётчика.</p>
 
-      <div class="mt-10 grid gap-8 md:grid-cols-2">
+      <div class="mt-10 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+        <h2 class="font-bold text-slate-900 dark:text-white">Динамика за 30 дней</h2>
+        <div class="mt-4 flex h-36 items-end gap-[3px]">
+          {days30.map((h) => (
+            <div class="group relative flex-1 rounded-t bg-blue-500/70 transition hover:bg-blue-600" style={`height: ${Math.max(2, (h.count / max30) * 100)}%`}>
+              <span class="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-0.5 text-xs font-bold text-white opacity-0 transition group-hover:opacity-100 dark:bg-slate-100 dark:text-slate-900">
+                {dayRu(h.day)}: {h.count}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div class="mt-2 flex justify-between text-xs text-slate-400">{dayRu(days30[0]?.day ?? today)}<span>{dayRu(today)}</span></div>
+      </div>
+
+      <div class="mt-6 grid gap-6 md:grid-cols-2">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+          <h2 class="font-bold text-slate-900 dark:text-white">По месяцам</h2>
+          <ul class="mt-4 space-y-2.5">
+            {months.map((m) => (
+              <li class="flex items-center gap-3 text-sm">
+                <span class="w-14 shrink-0 text-slate-500 dark:text-slate-400">{monthRu(m.month)}</span>
+                <span class="h-4 rounded bg-emerald-500/80" style={`width: ${Math.max(1, (m.count / maxMonth) * 100)}%`}></span>
+                <span class="shrink-0 font-bold text-slate-700 dark:text-slate-200">{m.count || '—'}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
         <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
           <h2 class="font-bold text-slate-900 dark:text-white">Откуда пришли сегодня</h2>
           {refs.length === 0 ? (
-            <p class="mt-4 text-sm text-slate-500">Данных пока нет — сбор источников начался сегодня.</p>
+            <p class="mt-4 text-sm text-slate-500">Данных пока нет — сбор источников начался сегодня вечером.</p>
           ) : (
             <ul class="mt-4 space-y-2.5">
               {refs.map(([name, n]) => (
@@ -91,19 +140,6 @@ const dayRu = (iso: string) =>
               ))}
             </ul>
           )}
-        </div>
-
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-          <h2 class="font-bold text-slate-900 dark:text-white">Последние 7 дней</h2>
-          <ul class="mt-4 space-y-2.5">
-            {history.map((h) => (
-              <li class="flex items-center gap-3 text-sm">
-                <span class="w-20 shrink-0 text-slate-500 dark:text-slate-400">{dayRu(h.day)}</span>
-                <span class="h-4 rounded bg-blue-500/80" style={`width: ${(h.count / maxHist) * 100}%`}></span>
-                <span class="shrink-0 font-bold text-slate-700 dark:text-slate-200">{h.count || '—'}</span>
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
 

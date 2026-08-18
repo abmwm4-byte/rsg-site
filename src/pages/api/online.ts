@@ -60,12 +60,14 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
     const seen = await kv.get(`uniq:${day}:${hash}`);
     if (!seen) {
       await kv.put(`uniq:${day}:${hash}`, '1', { expirationTtl: 90000 }); // дедуп на сутки
-      const incr = async (key: string) => {
+      const incr = async (key: string, persistent = false) => {
         const cur = parseInt((await kv.get(key)) ?? '0', 10);
-        await kv.put(key, String(cur + 1), { expirationTtl: TTL });
+        await kv.put(key, String(cur + 1), persistent ? {} : { expirationTtl: TTL });
       };
       const ref = refDomain(new URL(request.url).searchParams.get('ref') ?? '');
-      await incr(countKey);
+      await incr(countKey, true); // дневные счётчики храним бессрочно — история за год
+      await incr(`month:${day.slice(0, 7)}:_count`, true);
+      await incr('total:all', true);
       await incr(`stats:${day}:dev:${device}`);
       await incr(`stats:${day}:ref:${ref}`);
     }
