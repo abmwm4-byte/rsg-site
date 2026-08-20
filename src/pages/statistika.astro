@@ -18,29 +18,29 @@ const kv = (env as { SESSION?: KVNamespace }).SESSION;
 const dayKeyMinsk = (d: Date) =>
   new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Minsk', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 
+interface DayAgg {
+  dev: Record<string, number>;
+  ref: Record<string, number>;
+  hour: Record<string, number>;
+  city: Record<string, number>;
+  page: Record<string, number>;
+  pv: number;
+}
+
 const today = dayKeyMinsk(new Date());
 
 let todayCount = 0;
 let totalAll = 0;
-let devices: [string, number][] = [];
-let refs: [string, number][] = [];
+let agg: DayAgg = { dev: {}, ref: {}, hour: {}, city: {}, page: {}, pv: 0 };
+let goals: Record<string, number> = {};
 let days30: { day: string; count: number }[] = [];
 let months: { month: string; count: number }[] = [];
 
 if (kv) {
   todayCount = parseInt((await kv.get(`uniq:${today}:_count`)) ?? '0', 10);
   totalAll = parseInt((await kv.get('total:all')) ?? '0', 10);
-
-  const readGroup = async (prefix: string): Promise<[string, number][]> => {
-    const { keys } = await kv.list({ prefix });
-    const rows = await Promise.all(
-      keys.map(async (k) => [k.name.slice(prefix.length), parseInt((await kv.get(k.name)) ?? '0', 10)] as [string, number]),
-    );
-    return rows.sort((a, b) => b[1] - a[1]);
-  };
-
-  devices = await readGroup(`stats:${today}:dev:`);
-  refs = (await readGroup(`stats:${today}:ref:`)).filter(([name]) => name !== 'Внутренние переходы');
+  agg = (await kv.get(`agg:${today}`, 'json')) as DayAgg | null ?? agg;
+  goals = (await kv.get(`goals:${today}`, 'json')) as Record<string, number> | null ?? {};
 
   days30 = await Promise.all(
     Array.from({ length: 30 }, async (_, i) => {
@@ -57,19 +57,40 @@ if (kv) {
       return { month, count: parseInt((await kv.get(`month:${month}:_count`)) ?? '0', 10) };
     }),
   );
-  // Крайний месяц может дублироваться из-за сдвига setMonth — убираем дубли
   months = monthsRaw.filter((m, i) => monthsRaw.findIndex((x) => x.month === m.month) === i);
 }
 
+// Дельты
+const yesterday = days30.at(-2)?.count ?? 0;
+const deltaDay = yesterday > 0 ? Math.round(((todayCount - yesterday) / yesterday) * 100) : null;
+const week = days30.slice(-7).reduce((s, d) => s + d.count, 0);
+const prevWeek = days30.slice(-14, -7).reduce((s, d) => s + d.count, 0);
+const deltaWeek = prevWeek > 0 ? Math.round(((week - prevWeek) / prevWeek) * 100) : null;
+
+const sortDesc = (o: Record<string, number>) => Object.entries(o).sort((a, b) => b[1] - a[1]);
+const devices = sortDesc(agg.dev);
+const refs = sortDesc(agg.ref).filter(([n]) => n !== 'Внутренние переходы');
+const cities = sortDesc(agg.city);
+const pages = sortDesc(agg.page).slice(0, 8);
+
+const goalLabel: Record<string, string> = { call: 'Звонки', telegram: 'Telegram', viber: 'Viber', whatsapp: 'WhatsApp', route: 'Маршрут' };
+const goalList = sortDesc(goals);
+const goalsTotal = goalList.reduce((s, [, n]) => s + n, 0);
+const conversion = todayCount > 0 ? Math.round((goalsTotal / todayCount) * 100) : 0;
+
 const devLabel: Record<string, string> = { mobile: 'Мобильные', desktop: 'Компьютеры', tablet: 'Планшеты' };
+const devTotal = Math.max(1, devices.reduce((s, [, n]) => s + n, 0));
 const max30 = Math.max(1, ...days30.map((h) => h.count));
 const maxMonth = Math.max(1, ...months.map((m) => m.count));
-const devTotal = Math.max(1, devices.reduce((s, [, n]) => s + n, 0));
+const maxHour = Math.max(1, ...Object.values(agg.hour));
+const depth = todayCount > 0 ? (agg.pv / todayCount).toFixed(1) : '—';
 
 const dayRu = (iso: string) =>
   new Date(iso + 'T12:00:00+03:00').toLocaleDateString('ru-BY', { day: 'numeric', month: 'short' });
 const monthRu = (iso: string) =>
   new Date(iso + '-15T12:00:00+03:00').toLocaleDateString('ru-BY', { month: 'short', year: '2-digit' });
+const deltaHtml = (d: number | null) =>
+  d === null ? '' : d >= 0 ? `▲ +${d}%` : `▼ ${d}%`;
 ---
 
 <SiteLayout title="Статистика сайта — внутренняя" description="Внутренняя страница статистики посещаемости.">
@@ -78,28 +99,51 @@ const monthRu = (iso: string) =>
       <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Статистика сайта</h1>
       <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Уникальные посетители по хешу IP, сутки — по минскому времени. Дневные и месячные счётчики хранятся бессрочно.</p>
 
-      <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <!-- Сводка -->
+      <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div class="rounded-2xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-950/40">
           <div class="text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-400">Сегодня</div>
           <div class="mt-2 text-4xl font-extrabold text-blue-700 dark:text-blue-300">{todayCount}</div>
-          <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">уникальных</div>
+          {deltaDay !== null && (
+            <div class={`mt-1 text-sm font-semibold ${deltaDay >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>{deltaHtml(deltaDay)} ко вчера</div>
+          )}
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800">
+          <div class="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">За 7 дней</div>
+          <div class="mt-2 text-4xl font-extrabold text-slate-900 dark:text-white">{week}</div>
+          {deltaWeek !== null && (
+            <div class={`mt-1 text-sm font-semibold ${deltaWeek >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>{deltaHtml(deltaWeek)} к прошлой неделе</div>
+          )}
         </div>
         <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-800 dark:bg-emerald-950/40">
           <div class="text-sm font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">Всего</div>
           <div class="mt-2 text-4xl font-extrabold text-emerald-700 dark:text-emerald-300">{totalAll}</div>
           <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">с 18 августа 2026</div>
         </div>
-        {devices.map(([dev, n]) => (
-          <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800">
-            <div class="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{devLabel[dev] ?? dev}</div>
-            <div class="mt-2 text-4xl font-extrabold text-slate-900 dark:text-white">{n}</div>
-            <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">{Math.round((n / devTotal) * 100)}% сегодня</div>
-          </div>
-        ))}
+        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-800 dark:bg-amber-950/40">
+          <div class="text-sm font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">Обращения</div>
+          <div class="mt-2 text-4xl font-extrabold text-amber-700 dark:text-amber-300">{goalsTotal}</div>
+          <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">конверсия {conversion}% от уникальных</div>
+        </div>
       </div>
-      <p class="mt-2 text-xs text-slate-400 dark:text-slate-500">Разбивка по устройствам и источникам собирается с вечера 18 августа — поэтому в первый день сумма меньше общего счётчика.</p>
 
-      <div class="mt-10 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+      <!-- Цели сегодня -->
+      <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+        <h2 class="font-bold text-slate-900 dark:text-white">Обращения сегодня</h2>
+        {goalList.length === 0 ? (
+          <p class="mt-3 text-sm text-slate-500">Пока ни одного клика по кнопкам связи.</p>
+        ) : (
+          <div class="mt-4 flex flex-wrap gap-2.5">
+            {goalList.map(([g, n]) => (
+              <span class="rounded-full bg-blue-50 px-4 py-2 text-sm font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">{goalLabel[g] ?? g}: {n}</span>
+            ))}
+          </div>
+        )}
+        <p class="mt-3 text-xs text-slate-400">Клики по кнопкам «Позвонить», мессенджерам и «Маршрут». Просмотры сегодня: {agg.pv} ({depth} стр. на посетителя).</p>
+      </div>
+
+      <!-- 30 дней -->
+      <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
         <h2 class="font-bold text-slate-900 dark:text-white">Динамика за 30 дней</h2>
         <div class="mt-4 flex h-36 items-end gap-[3px]">
           {days30.map((h) => (
@@ -110,43 +154,96 @@ const monthRu = (iso: string) =>
             </div>
           ))}
         </div>
-        <div class="mt-2 flex justify-between text-xs text-slate-400">{dayRu(days30[0]?.day ?? today)}<span>{dayRu(today)}</span></div>
+        <div class="mt-2 flex justify-between text-xs text-slate-400"><span>{dayRu(days30[0]?.day ?? today)}</span><span>{dayRu(today)}</span></div>
       </div>
 
+      <!-- Сегодня: часы / устройства / источники / города / страницы -->
       <div class="mt-6 grid gap-6 md:grid-cols-2">
         <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-          <h2 class="font-bold text-slate-900 dark:text-white">По месяцам</h2>
-          <ul class="mt-4 space-y-2.5">
-            {months.map((m) => (
-              <li class="flex items-center gap-3 text-sm">
-                <span class="w-14 shrink-0 text-slate-500 dark:text-slate-400">{monthRu(m.month)}</span>
-                <span class="h-4 rounded bg-emerald-500/80" style={`width: ${Math.max(1, (m.count / maxMonth) * 100)}%`}></span>
-                <span class="shrink-0 font-bold text-slate-700 dark:text-slate-200">{m.count || '—'}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+          <h2 class="font-bold text-slate-900 dark:text-white">Часы заходов сегодня</h2>
+          <div class="mt-4 flex h-20 items-end gap-1">
+            {Array.from({ length: 24 }, (_, h) => {
+              const hh = String(h).padStart(2, '0');
+              const n = agg.hour[hh] ?? 0;
+              return (
+                <div class="flex-1 rounded-t bg-indigo-400/70" title={`${hh}:00 — ${n}`} style={`height: ${Math.max(3, (n / maxHour) * 100)}%`}></div>
+              );
+            })}
+          </div>
+          <div class="mt-2 flex justify-between text-xs text-slate-400"><span>00:00</span><span>12:00</span><span>23:00</span></div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-          <h2 class="font-bold text-slate-900 dark:text-white">Откуда пришли сегодня</h2>
-          {refs.length === 0 ? (
-            <p class="mt-4 text-sm text-slate-500">Данных пока нет — сбор источников начался сегодня вечером.</p>
-          ) : (
-            <ul class="mt-4 space-y-2.5">
-              {refs.map(([name, n]) => (
-                <li class="flex items-center justify-between gap-3 text-sm">
+          <h2 class="mt-8 font-bold text-slate-900 dark:text-white">Устройства сегодня</h2>
+          {devices.length === 0 ? <p class="mt-3 text-sm text-slate-500">Нет данных.</p> : (
+            <div class="mt-3 flex flex-wrap gap-2.5">
+              {devices.map(([dev, n]) => (
+                <span class="rounded-full bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                  {devLabel[dev] ?? dev}: {n} <span class="font-normal text-slate-400">({Math.round((n / devTotal) * 100)}%)</span>
+                </span>
+              ))}
+            </div>
+          )}
+
+          <h2 class="mt-8 font-bold text-slate-900 dark:text-white">Города сегодня</h2>
+          {cities.length === 0 ? <p class="mt-3 text-sm text-slate-500">Нет данных.</p> : (
+            <ul class="mt-3 space-y-2 text-sm">
+              {cities.slice(0, 8).map(([name, n]) => (
+                <li class="flex items-center justify-between gap-3">
                   <span class="truncate font-medium text-slate-700 dark:text-slate-300">{name}</span>
-                  <span class="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 font-bold text-slate-700 dark:bg-slate-700 dark:text-slate-200">{n}</span>
+                  <span class="shrink-0 font-bold text-slate-700 dark:text-slate-200">{n}</span>
                 </li>
               ))}
             </ul>
           )}
         </div>
+
+        <div class="space-y-6">
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+            <h2 class="font-bold text-slate-900 dark:text-white">Откуда пришли сегодня</h2>
+            {refs.length === 0 ? <p class="mt-3 text-sm text-slate-500">Нет данных.</p> : (
+              <ul class="mt-3 space-y-2 text-sm">
+                {refs.map(([name, n]) => (
+                  <li class="flex items-center justify-between gap-3">
+                    <span class="truncate font-medium text-slate-700 dark:text-slate-300">{name}</span>
+                    <span class="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 font-bold text-slate-700 dark:bg-slate-700 dark:text-slate-200">{n}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+            <h2 class="font-bold text-slate-900 dark:text-white">Страницы входа сегодня</h2>
+            {pages.length === 0 ? <p class="mt-3 text-sm text-slate-500">Нет данных.</p> : (
+              <ul class="mt-3 space-y-2 text-sm">
+                {pages.map(([name, n]) => (
+                  <li class="flex items-center justify-between gap-3">
+                    <a href={name} class="truncate font-medium text-blue-600 hover:underline dark:text-blue-400">{name}</a>
+                    <span class="shrink-0 font-bold text-slate-700 dark:text-slate-200">{n}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+            <h2 class="font-bold text-slate-900 dark:text-white">По месяцам</h2>
+            <ul class="mt-3 space-y-2 text-sm">
+              {months.map((m) => (
+                <li class="flex items-center gap-3">
+                  <span class="w-14 shrink-0 text-slate-500 dark:text-slate-400">{monthRu(m.month)}</span>
+                  <span class="h-4 rounded bg-emerald-500/80" style={`width: ${Math.max(1, (m.count / maxMonth) * 100)}%`}></span>
+                  <span class="shrink-0 font-bold text-slate-700 dark:text-slate-200">{m.count || '—'}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </div>
 
       <p class="mt-8 text-xs leading-relaxed text-slate-400 dark:text-slate-500">
         Погрешность ±2%: двойные вкладки могут дать +1, смена IP в мобильной сети — повторный зачёт.
-        Боты не засчитываются. Полная аналитика (пути по сайту, записи сессий) — в Яндекс.Метрике.
+        Боты не засчитываются. Разбивка по устройствам/источникам/городам/страницам собирается с вечера 18 августа.
+        Полная аналитика (пути по сайту, записи сессий) — в Яндекс.Метрике.
       </p>
     </div>
   </section>

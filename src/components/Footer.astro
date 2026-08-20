@@ -41,14 +41,21 @@ import { site, nav } from '../data/site';
 </footer>
 
 <script is:inline>
-  // Уникальные посетители за сутки: опрашиваем /api/online, обновляем каждые 60 сек
+  // Уникальные посетители за сутки: опрашиваем /api/online, обновляем каждые 60 сек.
+  // Первый запрос несёт ref (источник), path (страница входа) и pv=1 (просмотр).
   (() => {
     const box = document.getElementById('online-counter');
     const num = document.getElementById('online-count');
     if (!box || !num) return;
+    let first = true;
     const tick = async () => {
       try {
-        const r = await fetch('/api/online?ref=' + encodeURIComponent(document.referrer || ''));
+        let q = '?path=' + encodeURIComponent(location.pathname);
+        if (first) {
+          q += '&pv=1&ref=' + encodeURIComponent(document.referrer || '');
+          first = false;
+        }
+        const r = await fetch('/api/online' + q);
         const d = await r.json();
         num.textContent = d.online;
         box.classList.remove('hidden');
@@ -58,4 +65,11 @@ import { site, nav } from '../data/site';
     tick();
     setInterval(tick, 60000);
   })();
+
+  // Маячки целей: клики по звонку/мессенджерам/маршруту (keepalive — доживает при переходе)
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-goal]');
+    if (!el) return;
+    try { fetch('/api/online?goal=' + el.getAttribute('data-goal'), { keepalive: true }); } catch {}
+  }, { passive: true });
 </script>
