@@ -69,15 +69,10 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
     if (!kv) return json({ online: 1 });
 
     const ua = request.headers.get('user-agent') ?? '';
-    if (deviceOf(ua) === 'bot') {
-      const total = parseInt((await kv.get(`uniq:${dayKeyMinsk()}:_count`)) ?? '0', 10);
-      return json({ online: Math.max(1, total) });
-    }
-
     const params = new URL(request.url).searchParams;
     const day = dayKeyMinsk();
 
-    // Отладка: просмотр последних запросов
+    // Отладка и проверка IP — даже для ботов
     if (params.get('debug') === 'rsg-debug-2026') {
       const keys = [];
       let cursor = '';
@@ -90,6 +85,20 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
         keys.map(async (k) => ({ key: k, data: await kv.get(k, 'json') }))
       );
       return json({ debug: debugData.sort((a, b) => (b.key as string).localeCompare(a.key as string)) });
+    }
+
+    const checkIp = params.get('check');
+    if (checkIp) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(checkIp));
+      const hash = [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+      const seen = await kv.get(`uniq:${day}:${hash}`);
+      const count = parseInt((await kv.get(`uniq:${day}:_count`)) ?? '0', 10);
+      return json({ ip: checkIp, hash, seen: !!seen, day, totalToday: count });
+    }
+
+    if (deviceOf(ua) === 'bot') {
+      const total = parseInt((await kv.get(`uniq:${day}:_count`)) ?? '0', 10);
+      return json({ online: Math.max(1, total) });
     }
 
     // Отладка: записываем информацию о запросах (первые 10 в день)
