@@ -62,10 +62,12 @@ if (kv) {
   await Promise.all(periodDays.map(async (day) => {
     const a = (await kv.get(`agg:${day}`, 'json')) as Partial<DayAgg> | null;
     if (a) mergeInto(agg, { ...emptyAgg(), ...a });
-    const g = (await kv.get(`goals:${day}`, 'json')) as DayGoals | null;
+    const g = (await kv.get(`goals:${day}`, 'json')) as (DayGoals & Record<string, number>) | null;
     if (g) {
-      for (const [k, v] of Object.entries(g.goals ?? {})) goals.goals[k] = (goals.goals[k] ?? 0) + v;
-      for (const [k, v] of Object.entries(g.src ?? {})) goals.src[k] = (goals.src[k] ?? 0) + v;
+      // Миграция: старый формат — плоский {call: n, ...}
+      const norm: DayGoals = g.goals ? g : { goals: (g as unknown as Record<string, number>) ?? {}, src: {} };
+      for (const [k, v] of Object.entries(norm.goals ?? {})) goals.goals[k] = (goals.goals[k] ?? 0) + v;
+      for (const [k, v] of Object.entries(norm.src ?? {})) goals.src[k] = (goals.src[k] ?? 0) + v;
     }
   }));
 
@@ -78,8 +80,9 @@ if (kv) {
 
   goals30 = await Promise.all(
     days30.map(async ({ day }) => {
-      const g = (await kv.get(`goals:${day}`, 'json')) as DayGoals | null;
-      return { day, count: Object.values(g?.goals ?? {}).reduce((s, n) => s + n, 0) };
+      const g = (await kv.get(`goals:${day}`, 'json')) as (DayGoals & Record<string, number>) | null;
+      const norm = g ? (g.goals ?? (g as unknown as Record<string, number>)) : {};
+      return { day, count: Object.values(norm).reduce((s, n) => s + (typeof n === 'number' ? n : 0), 0) };
     }),
   );
 

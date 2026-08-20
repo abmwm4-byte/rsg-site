@@ -81,7 +81,9 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
     const goal = params.get('goal');
     if (goal && GOALS.has(goal)) {
       const key = `goals:${day}`;
-      const data = (await kv.get(key, 'json')) as DayGoals | null ?? { goals: {}, src: {} };
+      const raw = (await kv.get(key, 'json')) as (DayGoals & Record<string, number>) | null;
+      // Миграция: старый формат — плоский {call: n, ...}
+      const data: DayGoals = raw && raw.goals ? raw : { goals: (raw as Record<string, number> | null) ?? {}, src: {} };
       bump(data.goals, goal);
       bump(data.src, refDomain(params.get('gref') ?? '', params.get('gutm') ?? undefined));
       await kv.put(key, JSON.stringify(data)); // бессрочно — история конверсий
