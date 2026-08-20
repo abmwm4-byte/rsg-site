@@ -3,12 +3,14 @@ import SiteLayout from '../layouts/SiteLayout.astro';
 import { env } from 'cloudflare:workers';
 
 // Скрытая страница статистики: /statistika/?k=rsg-stats-2026
-// Читает агрегаты из KV (пишет /api/online). Не индексируется, нет в меню.
+// &p=7 — срезы за 7 дней вместо сегодняшнего дня. Не индексируется, нет в меню.
 export const prerender = false;
 
-if (Astro.url.searchParams.get('k') !== 'rsg-stats-2026') {
+const KEY = Astro.url.searchParams.get('k');
+if (KEY !== 'rsg-stats-2026') {
   return new Response('Not found', { status: 404 });
 }
+const period = Astro.url.searchParams.get('p') === '7' ? 7 : 1;
 
 Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
 Astro.response.headers.set('Cache-Control', 'no-store');
@@ -24,28 +26,60 @@ interface DayAgg {
   hour: Record<string, number>;
   city: Record<string, number>;
   page: Record<string, number>;
+  ret: Record<string, number>;
   pv: number;
+  eng: number;
 }
+interface DayGoals {
+  goals: Record<string, number>;
+  src: Record<string, number>;
+}
+const emptyAgg = (): DayAgg => ({ dev: {}, ref: {}, hour: {}, city: {}, page: {}, ret: {}, pv: 0, eng: 0 });
+
+const mergeInto = (a: DayAgg, b: DayAgg) => {
+  for (const f of ['dev', 'ref', 'hour', 'city', 'page', 'ret'] as const)
+    for (const [k, v] of Object.entries(b[f] ?? {})) a[f][k] = (a[f][k] ?? 0) + v;
+  a.pv += b.pv ?? 0;
+  a.eng += b.eng ?? 0;
+};
 
 const today = dayKeyMinsk(new Date());
 
 let todayCount = 0;
 let totalAll = 0;
-let agg: DayAgg = { dev: {}, ref: {}, hour: {}, city: {}, page: {}, pv: 0 };
-let goals: Record<string, number> = {};
+let agg = emptyAgg();
+let goals: DayGoals = { goals: {}, src: {} };
 let days30: { day: string; count: number }[] = [];
+let goals30: { day: string; count: number }[] = [];
 let months: { month: string; count: number }[] = [];
 
 if (kv) {
   todayCount = parseInt((await kv.get(`uniq:${today}:_count`)) ?? '0', 10);
   totalAll = parseInt((await kv.get('total:all')) ?? '0', 10);
-  agg = (await kv.get(`agg:${today}`, 'json')) as DayAgg | null ?? agg;
-  goals = (await kv.get(`goals:${today}`, 'json')) as Record<string, number> | null ?? {};
+
+  // Срезы за выбранный период (1 или 7 дней)
+  const periodDays = Array.from({ length: period }, (_, i) => dayKeyMinsk(new Date(Date.now() - i * 86400000)));
+  await Promise.all(periodDays.map(async (day) => {
+    const a = (await kv.get(`agg:${day}`, 'json')) as Partial<DayAgg> | null;
+    if (a) mergeInto(agg, { ...emptyAgg(), ...a });
+    const g = (await kv.get(`goals:${day}`, 'json')) as DayGoals | null;
+    if (g) {
+      for (const [k, v] of Object.entries(g.goals ?? {})) goals.goals[k] = (goals.goals[k] ?? 0) + v;
+      for (const [k, v] of Object.entries(g.src ?? {})) goals.src[k] = (goals.src[k] ?? 0) + v;
+    }
+  }));
 
   days30 = await Promise.all(
     Array.from({ length: 30 }, async (_, i) => {
       const day = dayKeyMinsk(new Date(Date.now() - (29 - i) * 86400000));
       return { day, count: parseInt((await kv.get(`uniq:${day}:_count`)) ?? '0', 10) };
+    }),
+  );
+
+  goals30 = await Promise.all(
+    days30.map(async ({ day }) => {
+      const g = (await kv.get(`goals:${day}`, 'json')) as DayGoals | null;
+      return { day, count: Object.values(g?.goals ?? {}).reduce((s, n) => s + n, 0) };
     }),
   );
 
@@ -60,7 +94,7 @@ if (kv) {
   months = monthsRaw.filter((m, i) => monthsRaw.findIndex((x) => x.month === m.month) === i);
 }
 
-// Дельты
+// Дельты (всегда по дневным счётчикам, независимо от периода срезов)
 const yesterday = days30.at(-2)?.count ?? 0;
 const deltaDay = yesterday > 0 ? Math.round(((todayCount - yesterday) / yesterday) * 100) : null;
 const week = days30.slice(-7).reduce((s, d) => s + d.count, 0);
@@ -74,29 +108,52 @@ const cities = sortDesc(agg.city);
 const pages = sortDesc(agg.page).slice(0, 8);
 
 const goalLabel: Record<string, string> = { call: 'Звонки', telegram: 'Telegram', viber: 'Viber', whatsapp: 'WhatsApp', route: 'Маршрут' };
-const goalList = sortDesc(goals);
+const goalList = sortDesc(goals.goals);
 const goalsTotal = goalList.reduce((s, [, n]) => s + n, 0);
-const conversion = todayCount > 0 ? Math.round((goalsTotal / todayCount) * 100) : 0;
+
+// Уникальные за период = сумма дневных счётчиков периода (для конверсии по периоду)
+const periodUniq = period === 1 ? todayCount : days30.slice(-period).reduce((s, d) => s + d.count, 0);
+const conversion = periodUniq > 0 ? Math.round((goalsTotal / periodUniq) * 100) : 0;
+
+// Источник → обращения: уники источника берём из agg.ref
+const refMap = Object.fromEntries(refs);
+const srcConv = sortDesc(goals.src).map(([src, n]) => {
+  const u = refMap[src] ?? 0;
+  return { src, goals: n, uniq: u, conv: u > 0 ? Math.round((n / u) * 100) : null };
+});
+
+const retNew = agg.ret.new ?? 0;
+const retBack = agg.ret.back ?? 0;
+const engPct = periodUniq > 0 ? Math.round((agg.eng / periodUniq) * 100) : 0;
 
 const devLabel: Record<string, string> = { mobile: 'Мобильные', desktop: 'Компьютеры', tablet: 'Планшеты' };
 const devTotal = Math.max(1, devices.reduce((s, [, n]) => s + n, 0));
 const max30 = Math.max(1, ...days30.map((h) => h.count));
+const maxG30 = Math.max(1, ...goals30.map((h) => h.count));
 const maxMonth = Math.max(1, ...months.map((m) => m.count));
 const maxHour = Math.max(1, ...Object.values(agg.hour));
-const depth = todayCount > 0 ? (agg.pv / todayCount).toFixed(1) : '—';
+const depth = periodUniq > 0 ? (agg.pv / periodUniq).toFixed(1) : '—';
 
 const dayRu = (iso: string) =>
   new Date(iso + 'T12:00:00+03:00').toLocaleDateString('ru-BY', { day: 'numeric', month: 'short' });
 const monthRu = (iso: string) =>
   new Date(iso + '-15T12:00:00+03:00').toLocaleDateString('ru-BY', { month: 'short', year: '2-digit' });
-const deltaHtml = (d: number | null) =>
-  d === null ? '' : d >= 0 ? `▲ +${d}%` : `▼ ${d}%`;
+const deltaCls = (d: number) => d >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500';
+const deltaTxt = (d: number) => (d >= 0 ? `▲ +${d}%` : `▼ ${d}%`);
+const periodLabel = period === 7 ? 'за 7 дней' : 'сегодня';
+const baseUrl = `/statistika/?k=${KEY}`;
 ---
 
 <SiteLayout title="Статистика сайта — внутренняя" description="Внутренняя страница статистики посещаемости.">
   <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-4xl px-4 py-14">
-      <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Статистика сайта</h1>
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Статистика сайта</h1>
+        <div class="flex rounded-xl border border-slate-200 p-1 text-sm font-semibold dark:border-slate-700">
+          <a href={baseUrl} class={`rounded-lg px-4 py-1.5 transition ${period === 1 ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300'}`}>Сегодня</a>
+          <a href={`${baseUrl}&p=7`} class={`rounded-lg px-4 py-1.5 transition ${period === 7 ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300'}`}>7 дней</a>
+        </div>
+      </div>
       <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Уникальные посетители по хешу IP, сутки — по минскому времени. Дневные и месячные счётчики хранятся бессрочно.</p>
 
       <!-- Сводка -->
@@ -104,16 +161,12 @@ const deltaHtml = (d: number | null) =>
         <div class="rounded-2xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-950/40">
           <div class="text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-400">Сегодня</div>
           <div class="mt-2 text-4xl font-extrabold text-blue-700 dark:text-blue-300">{todayCount}</div>
-          {deltaDay !== null && (
-            <div class={`mt-1 text-sm font-semibold ${deltaDay >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>{deltaHtml(deltaDay)} ко вчера</div>
-          )}
+          {deltaDay !== null && <div class={`mt-1 text-sm font-semibold ${deltaCls(deltaDay)}`}>{deltaTxt(deltaDay)} ко вчера</div>}
         </div>
         <div class="rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800">
           <div class="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">За 7 дней</div>
           <div class="mt-2 text-4xl font-extrabold text-slate-900 dark:text-white">{week}</div>
-          {deltaWeek !== null && (
-            <div class={`mt-1 text-sm font-semibold ${deltaWeek >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>{deltaHtml(deltaWeek)} к прошлой неделе</div>
-          )}
+          {deltaWeek !== null && <div class={`mt-1 text-sm font-semibold ${deltaCls(deltaWeek)}`}>{deltaTxt(deltaWeek)} к прошлой неделе</div>}
         </div>
         <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-800 dark:bg-emerald-950/40">
           <div class="text-sm font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">Всего</div>
@@ -123,13 +176,51 @@ const deltaHtml = (d: number | null) =>
         <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-800 dark:bg-amber-950/40">
           <div class="text-sm font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">Обращения</div>
           <div class="mt-2 text-4xl font-extrabold text-amber-700 dark:text-amber-300">{goalsTotal}</div>
-          <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">конверсия {conversion}% от уникальных</div>
+          <div class="mt-1 text-sm text-slate-600 dark:text-slate-400">конверсия {conversion}% {periodLabel}</div>
         </div>
       </div>
 
-      <!-- Цели сегодня -->
+      <!-- Новые/вернувшиеся + вовлечённость -->
+      <div class="mt-6 grid gap-4 sm:grid-cols-2">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+          <h2 class="font-bold text-slate-900 dark:text-white">Новые и вернувшиеся ({periodLabel})</h2>
+          <div class="mt-4 flex items-end gap-6">
+            <div>
+              <div class="text-3xl font-extrabold text-slate-900 dark:text-white">{retNew}</div>
+              <div class="text-sm text-slate-500">новых</div>
+            </div>
+            <div>
+              <div class="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">{retBack}</div>
+              <div class="text-sm text-slate-500">вернулись за 30 дней</div>
+            </div>
+            {(retNew + retBack) > 0 && (
+              <div class="ml-auto text-right">
+                <div class="text-3xl font-extrabold text-slate-900 dark:text-white">{Math.round((retBack / (retNew + retBack)) * 100)}%</div>
+                <div class="text-sm text-slate-500">доля вернувшихся</div>
+              </div>
+            )}
+          </div>
+          <p class="mt-3 text-xs text-slate-400">Вернувшийся — тот же IP был на сайте в последние 30 дней. Растущая доля = сайт запоминается.</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+          <h2 class="font-bold text-slate-900 dark:text-white">Вовлечённость ({periodLabel})</h2>
+          <div class="mt-4 flex items-end gap-6">
+            <div>
+              <div class="text-3xl font-extrabold text-slate-900 dark:text-white">{agg.eng}</div>
+              <div class="text-sm text-slate-500">провели на сайте &gt;1 мин</div>
+            </div>
+            <div class="ml-auto text-right">
+              <div class="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">{engPct}%</div>
+              <div class="text-sm text-slate-500">от уникальных</div>
+            </div>
+          </div>
+          <p class="mt-3 text-xs text-slate-400">Низкий процент = трафик «мимо». Высокий — люди реально читают кейсы и выбирают.</p>
+        </div>
+      </div>
+
+      <!-- Обращения -->
       <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-        <h2 class="font-bold text-slate-900 dark:text-white">Обращения сегодня</h2>
+        <h2 class="font-bold text-slate-900 dark:text-white">Обращения ({periodLabel})</h2>
         {goalList.length === 0 ? (
           <p class="mt-3 text-sm text-slate-500">Пока ни одного клика по кнопкам связи.</p>
         ) : (
@@ -139,40 +230,70 @@ const deltaHtml = (d: number | null) =>
             ))}
           </div>
         )}
-        <p class="mt-3 text-xs text-slate-400">Клики по кнопкам «Позвонить», мессенджерам и «Маршрут». Просмотры сегодня: {agg.pv} ({depth} стр. на посетителя).</p>
+        <p class="mt-3 text-xs text-slate-400">Клики по «Позвонить», мессенджерам и «Маршрут». Просмотры {periodLabel}: {agg.pv} ({depth} стр. на посетителя).</p>
+
+        {srcConv.length > 0 && (
+          <div class="mt-6 overflow-x-auto">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Источник → обращения</h3>
+            <table class="mt-2 w-full text-sm">
+              <thead>
+                <tr class="text-left text-xs uppercase tracking-wide text-slate-400">
+                  <th class="pb-2 pr-4 font-semibold">Источник</th>
+                  <th class="pb-2 pr-4 font-semibold">Уники</th>
+                  <th class="pb-2 pr-4 font-semibold">Обращения</th>
+                  <th class="pb-2 font-semibold">Конверсия</th>
+                </tr>
+              </thead>
+              <tbody>
+                {srcConv.map((r) => (
+                  <tr class="border-t border-slate-100 dark:border-slate-700">
+                    <td class="py-2 pr-4 font-medium text-slate-700 dark:text-slate-300">{r.src}</td>
+                    <td class="py-2 pr-4 text-slate-500">{r.uniq || '—'}</td>
+                    <td class="py-2 pr-4 font-bold text-slate-900 dark:text-white">{r.goals}</td>
+                    <td class="py-2 font-bold text-amber-600 dark:text-amber-400">{r.conv !== null ? r.conv + '%' : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      <!-- 30 дней -->
+      <!-- 30 дней: посетители + обращения -->
       <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-        <h2 class="font-bold text-slate-900 dark:text-white">Динамика за 30 дней</h2>
-        <div class="mt-4 flex h-36 items-end gap-[3px]">
+        <h2 class="font-bold text-slate-900 dark:text-white">Посетители за 30 дней</h2>
+        <div class="mt-4 flex h-32 items-end gap-[3px]">
           {days30.map((h) => (
             <div class="group relative flex-1 rounded-t bg-blue-500/70 transition hover:bg-blue-600" style={`height: ${Math.max(2, (h.count / max30) * 100)}%`}>
-              <span class="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-0.5 text-xs font-bold text-white opacity-0 transition group-hover:opacity-100 dark:bg-slate-100 dark:text-slate-900">
-                {dayRu(h.day)}: {h.count}
-              </span>
+              <span class="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-0.5 text-xs font-bold text-white opacity-0 transition group-hover:opacity-100 dark:bg-slate-100 dark:text-slate-900">{dayRu(h.day)}: {h.count}</span>
+            </div>
+          ))}
+        </div>
+        <h2 class="mt-6 font-bold text-slate-900 dark:text-white">Обращения за 30 дней</h2>
+        <div class="mt-4 flex h-20 items-end gap-[3px]">
+          {goals30.map((h) => (
+            <div class="group relative flex-1 rounded-t bg-amber-500/70 transition hover:bg-amber-600" style={`height: ${Math.max(2, (h.count / maxG30) * 100)}%`}>
+              <span class="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-0.5 text-xs font-bold text-white opacity-0 transition group-hover:opacity-100 dark:bg-slate-100 dark:text-slate-900">{dayRu(h.day)}: {h.count}</span>
             </div>
           ))}
         </div>
         <div class="mt-2 flex justify-between text-xs text-slate-400"><span>{dayRu(days30[0]?.day ?? today)}</span><span>{dayRu(today)}</span></div>
       </div>
 
-      <!-- Сегодня: часы / устройства / источники / города / страницы -->
+      <!-- Срезы -->
       <div class="mt-6 grid gap-6 md:grid-cols-2">
         <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-          <h2 class="font-bold text-slate-900 dark:text-white">Часы заходов сегодня</h2>
+          <h2 class="font-bold text-slate-900 dark:text-white">Часы заходов ({periodLabel})</h2>
           <div class="mt-4 flex h-20 items-end gap-1">
             {Array.from({ length: 24 }, (_, h) => {
               const hh = String(h).padStart(2, '0');
               const n = agg.hour[hh] ?? 0;
-              return (
-                <div class="flex-1 rounded-t bg-indigo-400/70" title={`${hh}:00 — ${n}`} style={`height: ${Math.max(3, (n / maxHour) * 100)}%`}></div>
-              );
+              return <div class="flex-1 rounded-t bg-indigo-400/70" title={`${hh}:00 — ${n}`} style={`height: ${Math.max(3, (n / maxHour) * 100)}%`}></div>;
             })}
           </div>
           <div class="mt-2 flex justify-between text-xs text-slate-400"><span>00:00</span><span>12:00</span><span>23:00</span></div>
 
-          <h2 class="mt-8 font-bold text-slate-900 dark:text-white">Устройства сегодня</h2>
+          <h2 class="mt-8 font-bold text-slate-900 dark:text-white">Устройства ({periodLabel})</h2>
           {devices.length === 0 ? <p class="mt-3 text-sm text-slate-500">Нет данных.</p> : (
             <div class="mt-3 flex flex-wrap gap-2.5">
               {devices.map(([dev, n]) => (
@@ -183,7 +304,7 @@ const deltaHtml = (d: number | null) =>
             </div>
           )}
 
-          <h2 class="mt-8 font-bold text-slate-900 dark:text-white">Города сегодня</h2>
+          <h2 class="mt-8 font-bold text-slate-900 dark:text-white">Города ({periodLabel})</h2>
           {cities.length === 0 ? <p class="mt-3 text-sm text-slate-500">Нет данных.</p> : (
             <ul class="mt-3 space-y-2 text-sm">
               {cities.slice(0, 8).map(([name, n]) => (
@@ -198,7 +319,7 @@ const deltaHtml = (d: number | null) =>
 
         <div class="space-y-6">
           <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-            <h2 class="font-bold text-slate-900 dark:text-white">Откуда пришли сегодня</h2>
+            <h2 class="font-bold text-slate-900 dark:text-white">Источники ({periodLabel})</h2>
             {refs.length === 0 ? <p class="mt-3 text-sm text-slate-500">Нет данных.</p> : (
               <ul class="mt-3 space-y-2 text-sm">
                 {refs.map(([name, n]) => (
@@ -212,7 +333,7 @@ const deltaHtml = (d: number | null) =>
           </div>
 
           <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-            <h2 class="font-bold text-slate-900 dark:text-white">Страницы входа сегодня</h2>
+            <h2 class="font-bold text-slate-900 dark:text-white">Страницы входа ({periodLabel})</h2>
             {pages.length === 0 ? <p class="mt-3 text-sm text-slate-500">Нет данных.</p> : (
               <ul class="mt-3 space-y-2 text-sm">
                 {pages.map(([name, n]) => (
@@ -242,7 +363,7 @@ const deltaHtml = (d: number | null) =>
 
       <p class="mt-8 text-xs leading-relaxed text-slate-400 dark:text-slate-500">
         Погрешность ±2%: двойные вкладки могут дать +1, смена IP в мобильной сети — повторный зачёт.
-        Боты не засчитываются. Разбивка по устройствам/источникам/городам/страницам собирается с вечера 18 августа.
+        Боты не засчитываются. Разбивки собираются с 18–20 августа (по мере добавления метрик).
         Полная аналитика (пути по сайту, записи сессий) — в Яндекс.Метрике.
       </p>
     </div>

@@ -42,18 +42,26 @@ import { site, nav } from '../data/site';
 
 <script is:inline>
   // Уникальные посетители за сутки: опрашиваем /api/online, обновляем каждые 60 сек.
-  // Первый запрос несёт ref (источник), path (страница входа) и pv=1 (просмотр).
+  // Первый тик: ref (источник), utm (метки landing-URL), path, pv=1.
+  // Второй тик (через минуту): engaged=1 — «провёл на сайте >1 мин».
   (() => {
     const box = document.getElementById('online-counter');
     const num = document.getElementById('online-count');
     if (!box || !num) return;
-    let first = true;
+    const utmNow = new URLSearchParams(location.search).get('utm_source');
+    if (utmNow) { try { sessionStorage.setItem('rsg_utm', utmNow); } catch {} }
+    const utm = (() => { try { return sessionStorage.getItem('rsg_utm') || ''; } catch { return ''; } })();
+    let first = true, ticks = 0, engagedSent = false;
     const tick = async () => {
+      ticks++;
       try {
         let q = '?path=' + encodeURIComponent(location.pathname);
         if (first) {
-          q += '&pv=1&ref=' + encodeURIComponent(document.referrer || '');
+          q += '&pv=1&ref=' + encodeURIComponent(document.referrer || '') + '&utm=' + encodeURIComponent(utm);
           first = false;
+        } else if (!engagedSent && ticks >= 2) {
+          q += '&engaged=1';
+          engagedSent = true;
         }
         const r = await fetch('/api/online' + q);
         const d = await r.json();
@@ -66,10 +74,15 @@ import { site, nav } from '../data/site';
     setInterval(tick, 60000);
   })();
 
-  // Маячки целей: клики по звонку/мессенджерам/маршруту (keepalive — доживает при переходе)
+  // Маячки целей: клики по звонку/мессенджерам/маршруту, с источником сессии.
+  // keepalive — запрос доживает, даже когда человек сразу уходит в звонилку/мессенджер.
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-goal]');
     if (!el) return;
-    try { fetch('/api/online?goal=' + el.getAttribute('data-goal'), { keepalive: true }); } catch {}
+    const utm = (() => { try { return sessionStorage.getItem('rsg_utm') || ''; } catch { return ''; } })();
+    const q = '?goal=' + el.getAttribute('data-goal')
+      + '&gref=' + encodeURIComponent(document.referrer || '')
+      + '&gutm=' + encodeURIComponent(utm);
+    try { fetch('/api/online' + q, { keepalive: true }); } catch {}
   }, { passive: true });
 </script>

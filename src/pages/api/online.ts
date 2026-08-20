@@ -2,12 +2,14 @@ import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 
 // Уникальные посетители за сутки (по Минску) + агрегаты для /statistika/:
-// устройства, источники, города (CF), страницы входа, часы, просмотры, цели.
+// устройства, источники (с UTM), города (CF), страницы входа, часы, просмотры,
+// цели с привязкой к источнику, новые/вернувшиеся, вовлечённость (>1 мин).
 // Дневные срезы — одним JSON-блобом agg:<day> (экономим квоту записей KV).
-// Бессрочные счётчики: uniq:<day>:_count, month:<YYYY-MM>:_count, total:all, goals:<day>.
+// Бессрочные: uniq:<day>:_count, month:<YYYY-MM>:_count, total:all, goals:<day>.
 export const prerender = false;
 
 const TTL = 8 * 24 * 3600; // agg-блобы и хеши дедупа
+const SEEN_TTL = 30 * 24 * 3600; // реестр «был на сайте» для новые/вернувшиеся
 const GOALS = new Set(['call', 'telegram', 'viber', 'whatsapp', 'route']);
 
 const dayKeyMinsk = (d = new Date()) =>
@@ -23,7 +25,8 @@ const deviceOf = (ua: string): 'bot' | 'mobile' | 'tablet' | 'desktop' => {
   return 'desktop';
 };
 
-const refDomain = (ref: string): string => {
+const refDomain = (ref: string, utm?: string): string => {
+  if (utm) return 'UTM: ' + utm.slice(0, 40);
   if (!ref) return 'Прямые заходы';
   try {
     const h = new URL(ref).hostname.toLowerCase().replace(/^www\./, '');
@@ -47,10 +50,16 @@ interface DayAgg {
   hour: Record<string, number>;
   city: Record<string, number>;
   page: Record<string, number>;
+  ret: Record<string, number>; // new / back
   pv: number;
+  eng: number; // провели на сайте > 1 минуты
+}
+interface DayGoals {
+  goals: Record<string, number>;
+  src: Record<string, number>;
 }
 
-const emptyAgg = (): DayAgg => ({ dev: {}, ref: {}, hour: {}, city: {}, page: {}, pv: 0 });
+const emptyAgg = (): DayAgg => ({ dev: {}, ref: {}, hour: {}, city: {}, page: {}, ret: {}, pv: 0, eng: 0 });
 const bump = (o: Record<string, number>, k: string) => { o[k] = (o[k] ?? 0) + 1; };
 
 export const GET: APIRoute = async ({ request, clientAddress }) => {
@@ -68,13 +77,14 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
     const params = new URL(request.url).searchParams;
     const day = dayKeyMinsk();
 
-    // Клики по целям (звонок, мессенджеры, маршрут) — считаем каждый клик
+    // Клики по целям — каждый клик, с привязкой к источнику сессии
     const goal = params.get('goal');
     if (goal && GOALS.has(goal)) {
       const key = `goals:${day}`;
-      const goals = (await kv.get(key, 'json')) as Record<string, number> | null ?? {};
-      bump(goals, goal);
-      await kv.put(key, JSON.stringify(goals)); // бессрочно — история конверсий
+      const data = (await kv.get(key, 'json')) as DayGoals | null ?? { goals: {}, src: {} };
+      bump(data.goals, goal);
+      bump(data.src, refDomain(params.get('gref') ?? '', params.get('gutm') ?? undefined));
+      await kv.put(key, JSON.stringify(data)); // бессрочно — история конверсий
       return json({ ok: true });
     }
 
@@ -84,12 +94,14 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
 
     const seen = await kv.get(`uniq:${day}:${hash}`);
     const isPv = params.get('pv') === '1';
+    const isEngaged = params.get('engaged') === '1';
 
-    if (!seen || isPv) {
+    if (!seen || isPv || isEngaged) {
       const aggKey = `agg:${day}`;
-      const agg = (await kv.get(aggKey, 'json')) as DayAgg | null ?? emptyAgg();
+      const agg = { ...emptyAgg(), ...((await kv.get(aggKey, 'json')) as Partial<DayAgg> | null) };
 
       if (isPv) agg.pv++;
+      if (isEngaged) agg.eng++;
 
       if (!seen) {
         await kv.put(`uniq:${day}:${hash}`, '1', { expirationTtl: 90000 }); // дедуп на сутки
@@ -101,8 +113,14 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
         await incr(`month:${day.slice(0, 7)}:_count`);
         await incr('total:all');
 
+        // Новый или вернувшийся (реестр на 30 дней)
+        const seenKey = `seen30:${hash}`;
+        const was = await kv.get(seenKey);
+        bump(agg.ret, was ? 'back' : 'new');
+        await kv.put(seenKey, '1', { expirationTtl: SEEN_TTL });
+
         bump(agg.dev, deviceOf(ua));
-        bump(agg.ref, refDomain(params.get('ref') ?? ''));
+        bump(agg.ref, refDomain(params.get('ref') ?? '', params.get('utm') ?? undefined));
         bump(agg.hour, hourMinsk());
         const cf = (request as unknown as { cf?: { city?: string; country?: string } }).cf;
         bump(agg.city, cf?.city || cf?.country || 'Другие');
