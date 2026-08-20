@@ -102,15 +102,21 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
       return json({ day, agg });
     }
 
+    // Сброс счётчика отладки
+    if (params.get('reset-debug') === 'rsg-debug-2026') {
+      await kv.put(`debug:count:${day}`, '0', { expirationTtl: TTL });
+      return json({ reset: true, day });
+    }
+
     if (deviceOf(ua) === 'bot') {
       const total = parseInt((await kv.get(`uniq:${day}:_count`)) ?? '0', 10);
       return json({ online: Math.max(1, total) });
     }
 
-    // Отладка: записываем информацию о запросах (первые 10 в день)
+    // Отладка: записываем информацию о запросах (первые 50 в день)
     const cf = (request as unknown as { cf?: { city?: string; country?: string; colo?: string } }).cf;
     const debugCount = parseInt((await kv.get(`debug:count:${day}`)) ?? '0', 10);
-    if (debugCount < 10) {
+    if (debugCount < 50) {
       const debugKey = `debug:${day}:${Date.now()}`;
       const debugInfo = {
         ip: clientAddress.slice(0, 8) + '...',
