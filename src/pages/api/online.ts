@@ -44,6 +44,51 @@ const refDomain = (ref: string, utm?: string): string => {
   }
 };
 
+const cityRu = (city: string, country?: string): string => {
+  const cityMap: Record<string, string> = {
+    'Minsk': 'Минск',
+    'Brest': 'Брест',
+    'Gomel': 'Гомель',
+    'Grodno': 'Гродно',
+    'Vitebsk': 'Витебск',
+    'Mogilev': 'Могилёв',
+    'Mahilyow': 'Могилёв',
+    'Budapest': 'Будапешт',
+    'Warsaw': 'Варшава',
+    'Kyiv': 'Киев',
+    'Moscow': 'Москва',
+    'Saint Petersburg': 'Санкт-Петербург',
+    'Vilnius': 'Вильнюс',
+    'Riga': 'Рига',
+    'Tallinn': 'Таллин',
+    'Paris': 'Париж',
+    'Berlin': 'Берлин',
+    'Vienna': 'Вена',
+    'Prague': 'Прага',
+    'Bratislava': 'Братислава',
+  };
+  const countryMap: Record<string, string> = {
+    'BY': 'Беларусь',
+    'RU': 'Россия',
+    'UA': 'Украина',
+    'PL': 'Польша',
+    'LT': 'Литва',
+    'LV': 'Латвия',
+    'EE': 'Эстония',
+    'HU': 'Венгрия',
+    'AT': 'Австрия',
+    'DE': 'Германия',
+    'CZ': 'Чехия',
+    'SK': 'Словакия',
+    'FR': 'Франция',
+  };
+  if (city && cityMap[city]) return cityMap[city];
+  if (country && countryMap[country]) return countryMap[country];
+  if (city) return city;
+  if (country) return country;
+  return 'Другие';
+};
+
 interface DayAgg {
   dev: Record<string, number>;
   ref: Record<string, number>;
@@ -108,6 +153,15 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
       return json({ reset: true, day });
     }
 
+    // Сброс геолокации для конкретного IP
+    const resetGeo = params.get('reset-geo');
+    if (resetGeo) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(resetGeo));
+      const hash = [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+      await kv.delete(`geo:${day}:${hash}`);
+      return json({ reset: true, ip: resetGeo, hash, day });
+    }
+
     if (deviceOf(ua) === 'bot') {
       const total = parseInt((await kv.get(`uniq:${day}:_count`)) ?? '0', 10);
       return json({ online: Math.max(1, total) });
@@ -123,6 +177,7 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
         ua: ua.slice(0, 60),
         device: deviceOf(ua),
         cf: { city: cf?.city, country: cf?.country, colo: cf?.colo },
+        cityRu: cityRu(cf?.city, cf?.country),
         time: new Date().toISOString()
       };
       await kv.put(debugKey, JSON.stringify(debugInfo), { expirationTtl: TTL });
@@ -185,7 +240,7 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
       const geoSeen = await kv.get(geoKey);
       if (!geoSeen) {
         const cf = (request as unknown as { cf?: { city?: string; country?: string } }).cf;
-        bump(agg.city, cf?.city || cf?.country || 'Другие');
+        bump(agg.city, cityRu(cf?.city, cf?.country));
         await kv.put(geoKey, '1', { expirationTtl: TTL });
       }
 
