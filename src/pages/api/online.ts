@@ -96,6 +96,12 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
       return json({ ip: checkIp, hash, seen: !!seen, day, totalToday: count });
     }
 
+    // Просмотр агрегата за день
+    if (params.get('agg') === 'rsg-debug-2026') {
+      const agg = await kv.get(`agg:${day}`, 'json');
+      return json({ day, agg });
+    }
+
     if (deviceOf(ua) === 'bot') {
       const total = parseInt((await kv.get(`uniq:${day}:_count`)) ?? '0', 10);
       return json({ online: Math.max(1, total) });
