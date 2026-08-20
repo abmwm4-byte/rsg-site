@@ -10,7 +10,33 @@ const KEY = Astro.url.searchParams.get('k');
 if (KEY !== 'rsg-stats-2026') {
   return new Response('Not found', { status: 404 });
 }
-const period = Astro.url.searchParams.get('p') === '7' ? 7 : 1;
+
+type Period = 'today' | '7days' | '30days' | 'month' | 'year' | 'custom';
+const periodParam = Astro.url.searchParams.get('p') as Period | null;
+const fromParam = Astro.url.searchParams.get('from');
+const toParam = Astro.url.searchParams.get('to');
+
+let period: Period = 'today';
+let daysToLoad = 1;
+
+if (periodParam === '7days') {
+  period = '7days';
+  daysToLoad = 7;
+} else if (periodParam === '30days') {
+  period = '30days';
+  daysToLoad = 30;
+} else if (periodParam === 'month') {
+  period = 'month';
+  daysToLoad = 30; // загрузим последние 30 дней, потом отфильтруем
+} else if (periodParam === 'year') {
+  period = 'year';
+  daysToLoad = 365;
+} else if (periodParam === 'custom' && fromParam && toParam) {
+  period = 'custom';
+  const from = new Date(fromParam);
+  const to = new Date(toParam);
+  daysToLoad = Math.ceil((to.getTime() - from.getTime()) / 86400000) + 1;
+}
 
 Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
 Astro.response.headers.set('Cache-Control', 'no-store');
@@ -57,8 +83,34 @@ if (kv) {
   todayCount = parseInt((await kv.get(`uniq:${today}:_count`)) ?? '0', 10);
   totalAll = parseInt((await kv.get('total:all')) ?? '0', 10);
 
-  // Срезы за выбранный период (1 или 7 дней)
-  const periodDays = Array.from({ length: period }, (_, i) => dayKeyMinsk(new Date(Date.now() - i * 86400000)));
+  // Определяем диапазон дней для загрузки
+  let periodDays: string[] = [];
+  const now = new Date();
+
+  if (period === 'custom' && fromParam && toParam) {
+    const from = new Date(fromParam);
+    const to = new Date(toParam);
+    for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+      periodDays.push(dayKeyMinsk(new Date(d)));
+    }
+  } else if (period === 'month') {
+    // Текущий месяц
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    for (let d = new Date(firstDay); d <= now; d.setDate(d.getDate() + 1)) {
+      periodDays.push(dayKeyMinsk(new Date(d)));
+    }
+  } else if (period === 'year') {
+    // Текущий год
+    const firstDay = new Date(now.getFullYear(), 0, 1);
+    for (let d = new Date(firstDay); d <= now; d.setDate(d.getDate() + 1)) {
+      periodDays.push(dayKeyMinsk(new Date(d)));
+    }
+  } else {
+    // today, 7days, 30days
+    periodDays = Array.from({ length: daysToLoad }, (_, i) => dayKeyMinsk(new Date(Date.now() - i * 86400000)));
+  }
+
+  // Срезы за выбранный период
   await Promise.all(periodDays.map(async (day) => {
     const a = (await kv.get(`agg:${day}`, 'json')) as Partial<DayAgg> | null;
     if (a) mergeInto(agg, { ...emptyAgg(), ...a });
@@ -114,8 +166,18 @@ const goalLabel: Record<string, string> = { call: 'Звонки', telegram: 'Tel
 const goalList = sortDesc(goals.goals);
 const goalsTotal = goalList.reduce((s, [, n]) => s + n, 0);
 
-// Уникальные за период = сумма дневных счётчиков периода (для конверсии по периоду)
-const periodUniq = period === 1 ? todayCount : days30.slice(-period).reduce((s, d) => s + d.count, 0);
+// Уникальные за период = сумма дневных счётчиков периода
+let periodUniq = todayCount;
+if (period === 'today') {
+  periodUniq = todayCount;
+} else if (period === '7days' || period === '30days') {
+  periodUniq = days30.slice(-daysToLoad).reduce((s, d) => s + d.count, 0);
+} else {
+  // Для month, year, custom считаем сумму по periodDays
+  periodUniq = await Promise.all(
+    periodDays.map(async (day) => parseInt((await kv.get(`uniq:${day}:_count`)) ?? '0', 10))
+  ).then(counts => counts.reduce((s, n) => s + n, 0));
+}
 const conversion = periodUniq > 0 ? Math.round((goalsTotal / periodUniq) * 100) : 0;
 
 // Источник → обращения: уники источника берём из agg.ref
@@ -143,7 +205,16 @@ const monthRu = (iso: string) =>
   new Date(iso + '-15T12:00:00+03:00').toLocaleDateString('ru-BY', { month: 'short', year: '2-digit' });
 const deltaCls = (d: number) => d >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500';
 const deltaTxt = (d: number) => (d >= 0 ? `▲ +${d}%` : `▼ ${d}%`);
-const periodLabel = period === 7 ? 'за 7 дней' : 'сегодня';
+
+const periodLabel = {
+  today: 'сегодня',
+  '7days': 'за 7 дней',
+  '30days': 'за 30 дней',
+  month: 'за месяц',
+  year: 'за год',
+  custom: 'за период'
+}[period] || 'сегодня';
+
 const baseUrl = `/statistika/?k=${KEY}`;
 ---
 
@@ -151,12 +222,36 @@ const baseUrl = `/statistika/?k=${KEY}`;
   <section class="bg-white dark:bg-slate-900">
     <div class="mx-auto max-w-4xl px-4 py-14">
       <div class="flex flex-wrap items-center justify-between gap-4">
-        <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Статистика сайта</h1>
-        <div class="flex rounded-xl border border-slate-200 p-1 text-sm font-semibold dark:border-slate-700">
-          <a href={baseUrl} class={`rounded-lg px-4 py-1.5 transition ${period === 1 ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300'}`}>Сегодня</a>
-          <a href={`${baseUrl}&p=7`} class={`rounded-lg px-4 py-1.5 transition ${period === 7 ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300'}`}>7 дней</a>
+        <div>
+          <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Статистика сайта</h1>
+          <a href="/api/online?debug=rsg-debug-2026" target="_blank" class="mt-1 text-xs text-slate-400 hover:text-blue-500">Отладка: последние запросы</a>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="flex rounded-xl border border-slate-200 p-1 text-sm font-semibold dark:border-slate-700">
+            <a href={baseUrl} class={`rounded-lg px-3 py-1.5 transition ${period === 'today' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300'}`}>Сегодня</a>
+            <a href={`${baseUrl}&p=7days`} class={`rounded-lg px-3 py-1.5 transition ${period === '7days' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300'}`}>7 дней</a>
+            <a href={`${baseUrl}&p=30days`} class={`rounded-lg px-3 py-1.5 transition ${period === '30days' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300'}`}>30 дней</a>
+            <a href={`${baseUrl}&p=month`} class={`rounded-lg px-3 py-1.5 transition ${period === 'month' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300'}`}>Месяц</a>
+            <a href={`${baseUrl}&p=year`} class={`rounded-lg px-3 py-1.5 transition ${period === 'year' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300'}`}>Год</a>
+          </div>
+          <form id="customPeriod" class="flex items-center gap-2 rounded-xl border border-slate-200 p-1 text-sm dark:border-slate-700">
+            <input type="date" name="from" class="rounded border border-slate-300 px-2 py-1 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" required />
+            <span class="text-slate-400">—</span>
+            <input type="date" name="to" class="rounded border border-slate-300 px-2 py-1 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200" required />
+            <button type="submit" class="rounded-lg bg-slate-100 px-3 py-1.5 font-semibold text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">OK</button>
+          </form>
         </div>
       </div>
+      <script define:vars={{baseUrl}}>
+        document.getElementById('customPeriod').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const from = e.target.from.value;
+          const to = e.target.to.value;
+          if (from && to) {
+            window.location.href = `${baseUrl}&p=custom&from=${from}&to=${to}`;
+          }
+        });
+      </script>
       <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Уникальные посетители по хешу IP, сутки — по минскому времени. Дневные и месячные счётчики хранятся бессрочно.</p>
 
       <!-- Сводка -->

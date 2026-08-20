@@ -77,6 +77,37 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
     const params = new URL(request.url).searchParams;
     const day = dayKeyMinsk();
 
+    // Отладка: просмотр последних запросов
+    if (params.get('debug') === 'rsg-debug-2026') {
+      const keys = [];
+      let cursor = '';
+      do {
+        const list = await kv.list({ prefix: `debug:${day}:`, cursor, limit: 20 });
+        keys.push(...list.keys.map(k => k.name));
+        cursor = list.cursor;
+      } while (cursor);
+      const debugData = await Promise.all(
+        keys.map(async (k) => ({ key: k, data: await kv.get(k, 'json') }))
+      );
+      return json({ debug: debugData.sort((a, b) => (b.key as string).localeCompare(a.key as string)) });
+    }
+
+    // Отладка: записываем информацию о запросах (первые 10 в день)
+    const cf = (request as unknown as { cf?: { city?: string; country?: string; colo?: string } }).cf;
+    const debugCount = parseInt((await kv.get(`debug:count:${day}`)) ?? '0', 10);
+    if (debugCount < 10) {
+      const debugKey = `debug:${day}:${Date.now()}`;
+      const debugInfo = {
+        ip: clientAddress.slice(0, 8) + '...',
+        ua: ua.slice(0, 60),
+        device: deviceOf(ua),
+        cf: { city: cf?.city, country: cf?.country, colo: cf?.colo },
+        time: new Date().toISOString()
+      };
+      await kv.put(debugKey, JSON.stringify(debugInfo), { expirationTtl: TTL });
+      await kv.put(`debug:count:${day}`, String(debugCount + 1), { expirationTtl: TTL });
+    }
+
     // Клики по целям — каждый клик, с привязкой к источнику сессии
     const goal = params.get('goal');
     if (goal && GOALS.has(goal)) {
