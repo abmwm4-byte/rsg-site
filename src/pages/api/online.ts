@@ -53,6 +53,7 @@ const cityRu = (city: string, country?: string): string => {
     'Vitebsk': 'Витебск',
     'Mogilev': 'Могилёв',
     'Mahilyow': 'Могилёв',
+    'Lida': 'Лида',
     'Budapest': 'Будапешт',
     'Warsaw': 'Варшава',
     'Kyiv': 'Киев',
