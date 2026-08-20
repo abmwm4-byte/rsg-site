@@ -162,6 +162,23 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
       return json({ reset: true, ip: resetGeo, hash, day });
     }
 
+    // Миграция городов в агрегате за день на русский
+    if (params.get('migrate-cities') === 'rsg-debug-2026') {
+      const aggKey = `agg:${day}`;
+      const agg = await kv.get(aggKey, 'json') as Partial<DayAgg> | null;
+      if (agg?.city) {
+        const newCity: Record<string, number> = {};
+        for (const [city, count] of Object.entries(agg.city)) {
+          const ru = cityRu(city);
+          newCity[ru] = (newCity[ru] ?? 0) + count;
+        }
+        agg.city = newCity;
+        await kv.put(aggKey, JSON.stringify(agg), { expirationTtl: TTL });
+        return json({ migrated: true, day, oldCities: Object.keys(agg.city).length });
+      }
+      return json({ migrated: false, day, error: 'no agg or city' });
+    }
+
     if (deviceOf(ua) === 'bot') {
       const total = parseInt((await kv.get(`uniq:${day}:_count`)) ?? '0', 10);
       return json({ online: Math.max(1, total) });
