@@ -176,10 +176,17 @@ export const GET: APIRoute = async ({ request, clientAddress }) => {
         bump(agg.dev, deviceOf(ua));
         bump(agg.ref, refDomain(params.get('ref') ?? '', params.get('utm') ?? undefined));
         bump(agg.hour, hourMinsk());
-        const cf = (request as unknown as { cf?: { city?: string; country?: string } }).cf;
-        bump(agg.city, cf?.city || cf?.country || 'Другие');
         const path = params.get('path') ?? '';
         if (path.startsWith('/')) bump(agg.page, path.slice(0, 120));
+      }
+
+      // Геолокация — обновляем один раз за день для каждого IP
+      const geoKey = `geo:${day}:${hash}`;
+      const geoSeen = await kv.get(geoKey);
+      if (!geoSeen) {
+        const cf = (request as unknown as { cf?: { city?: string; country?: string } }).cf;
+        bump(agg.city, cf?.city || cf?.country || 'Другие');
+        await kv.put(geoKey, '1', { expirationTtl: TTL });
       }
 
       await kv.put(aggKey, JSON.stringify(agg), { expirationTtl: TTL });
